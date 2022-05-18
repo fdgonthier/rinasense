@@ -9,7 +9,7 @@
 
 #include "IPCP.h"
 #include "EFCP.h"
-#include "Rmt.h"
+#include "rmt.h"
 #include "common.h"
 #include "du.h"
 #include "factoryIPCP.h"

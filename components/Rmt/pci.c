@@ -16,7 +16,7 @@
 
 #include "esp_log.h"
 
-#include "Rmt.h"
+#include "rmt.h"
 #include "configSensor.h"
 #include "common.h"
 #include "du.h"

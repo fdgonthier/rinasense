@@ -6,6 +6,7 @@
 #ifndef EFCP_H__INCLUDED
 #define EFCP_H__INCLUDED
 
+#include "rmt.h"
 #include "pci.h"
 #include "du.h"
 #include "efcpStructures.h"
