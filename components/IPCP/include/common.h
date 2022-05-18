@@ -113,31 +113,7 @@ struct flowSpec_t
         BaseType_t xMsgBoundaries;
 };
 
-typedef struct xNETWORK_BUFFER
-{
-        ListItem_t xBufferListItem; /**< Used to reference the buffer form the free buffer list or a socket. */
-        uint8_t ulGpa;              /**< Source or destination Protocol address, depending on usage scenario. */
-        uint8_t *pucEthernetBuffer;
-        uint8_t *pucRinaBuffer;                                                        /**< Pointer to the start of the Rina packet. */
-        uint8_t *pucDataBuffer;                                                        /**< Pointer to the start of the User Data Unit. */
-        size_t xEthernetDataLength;                                                    /**< Starts by holding the total Ethernet frame length, then the Rina payload length. */
-        size_t xRinaDataLength;                                                        /**< Starts by holding the total Rina packet length, then the User Data payload length. */
-        size_t xDataLength; /**< Starts by holding the total User Data Unit length. */ /**< Pointer to the start of the Ethernet frame. */
-                                                                                       /**< Starts by holding the total Ethernet frame length, then the UDP/TCP payload length. */
-        uint32_t ulPort;                                                               /**< Source or destination port, depending on usage scenario. */
-        uint32_t ulBoundPort;                                                          /**< The N-1 port to transmite. */
-
-} NetworkBufferDescriptor_t;
-typedef enum FRAMES_PROCESSING
-{
-        eReleaseBuffer = 0,   /* Processing the frame did not find anything to do - just release the buffer. */
-        eProcessBuffer,       /* An Ethernet frame has a valid address - continue process its contents. */
-        eReturnEthernetFrame, /* The Ethernet frame contains an ARP826 packet that can be returned to its source. */
-        eFrameConsumed        /* Processing the Ethernet packet contents resulted in the payload being sent to the stack. */
-} eFrameProcessingResult_t;
-
-typedef struct xPOLICY
-{
+typedef struct xPOLICY {
         /* The name of the policy */
         string_t pcPolicyName;
 
@@ -332,12 +308,6 @@ typedef struct xAUTH_POLICY
         uint8_t ucAbsSyntax;
 
 } authPolicy_t;
-
-// Structure MAC ADDRESS
-typedef struct xMAC_ADDRESS
-{
-        uint8_t ucBytes[MAC_ADDRESS_LENGTH_BYTES]; /**< Byte array of the MAC address */
-} MACAddress_t;
 
 /* ALWAYS use this function to check if the id looks good */
 BaseType_t is_port_id_ok(portId_t id);

@@ -19,6 +19,8 @@
 #include "common.h"
 #include "IPCP.h"
 
+#include "port.h"
+
 #include "esp_log.h"
 
 #define MAX(a, b) ((a > b) ? a : b)
@@ -53,10 +55,10 @@ void vARPAddCacheEntry(struct rinarpHandle_t *pxHandle, uint8_t ucAge);
 static ARPCacheRow_t xARPCache[ARP_CACHE_ENTRIES];
 
 /** @brief Grow up an address GPA filling with 0x00 until the required GPA length*/
-BaseType_t xARPAddressGPAGrow(gpa_t *pxGpa, size_t xlength, uint8_t ucFiller);
+bool_t xARPAddressGPAGrow(gpa_t *pxGpa, size_t xlength, uint8_t ucFiller);
 
 /** @brief Shrink an address GPA shrinking with 0x00 until the required GPA length*/
-BaseType_t xARPAddressGPAShrink(gpa_t *pxGpa, uint8_t ucFiller);
+bool_t xARPAddressGPAShrink(gpa_t *pxGpa, uint8_t ucFiller);
 
 /*-----------------------------------------------------------*/
 

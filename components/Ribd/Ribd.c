@@ -18,11 +18,8 @@
 #include "configSensor.h"
 #include "Rib.h"
 #include "RINA_API.h"
-#include "normalIPCP.h"
-#include "Rmt.h"
-#include "FlowAllocator.h"
-
-#include "esp_log.h"
+#include "rstr.h"
+#include "du.h"
 
 int n = 0;
 static char *opcodeNamesTable[] = {[M_CONNECT] = "M_CONNECT",

@@ -5,6 +5,10 @@
  *      Author: i2CAT
  */
 
+#include "port.h"
+#include "buffer.h"
+#include "mac.h"
+
 #ifndef ARP_H_INCLUDED
 #define ARP_H_INCLUDED
 
@@ -12,13 +16,9 @@
 /* Miscellaneous structure and definitions. */
 /*-----------------------------------------------------------*/
 
-#include "common.h"
-#include "IPCP.h"
-
-// enum MAC Address
-typedef enum
-{
-	MAC_ADDR_802_3
+//enum MAC Address
+typedef enum {
+        MAC_ADDR_802_3
 } eGHAType_t;
 
 // Structure Generic Protocol Address
@@ -101,10 +101,10 @@ struct rinarpHandle_t
 #define ARP_FRAME_TYPE (0x0608U)
 
 /* ARP related definitions. */
-#define ARP_PROTOCOL_TYPE (0x0008U)
-#define ARP_HARDWARE_TYPE_ETHERNET (0x0001U)
-#define ARP_REQUEST (0x0100U)
-#define ARP_REPLY (0x0200U)
+#define ARP_PROTOCOL_TYPE                ( 0x0008U )
+#define ARP_HARDWARE_TYPE_ETHERNET       ( 0x0001U )
+#define ARP_REQUEST                      ( 0x0100U )
+#define ARP_REPLY                        ( 0x0200U )
 
 /************** ARP and Ethernet events handle *************************/
 /*
@@ -144,11 +144,15 @@ BaseType_t xARPResolveGPA(const gpa_t *tpa, const gpa_t *spa, const gha_t *sha);
 
 void vARPInitCache(void);
 
+bool_t xARPRemove(const gpa_t * pxPa, const gha_t * pxHa);
+
 void vARPPrintCache(void);
 
 void vPrintMACAddress(const gha_t *gha);
 
+bool_t xARPResolveGPA(const gpa_t * tpa, const gpa_t * spa, const gha_t * sha);
+
 gha_t *pxARPLookupGHA(const gpa_t *pxGpaToLookup);
-void vARPPrintMACAddress(const gha_t *pxGha);
+
 
 #endif /* ARP_H_ */

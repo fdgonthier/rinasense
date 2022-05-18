@@ -1,0 +1,15 @@
+if(NOT ${TARGET_TYPE} STREQUAL "freertos_idf")
+  include(${CMAKE_CURRENT_SOURCE_DIR}/${TARGET_TYPE}/CMakeLists.txt)
+else()
+  set(portability_INCLUDES
+    "include"
+    "${TARGET_TYPE}/include"
+  )
+
+  idf_component_register(
+    SRCS
+    "freertos_idf/rslist.c"
+    "freertos_idf/rsmem.c"
+
+    INCLUDE_DIRS ${portability_INCLUDES})
+endif()

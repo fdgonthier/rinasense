@@ -16,6 +16,7 @@
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
 
+#include "IPCP.h"
 #include "BufferManagement.h"
 #include "configSensor.h"
 #include "common.h"
