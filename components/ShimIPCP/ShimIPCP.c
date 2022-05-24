@@ -17,7 +17,7 @@
 #include "BufferManagement.h"
 #include "du.h"
 #include "IpcManager.h"
-#include "rstr.h"
+#include "rina_name.h"
 
 #include "esp_log.h"
 

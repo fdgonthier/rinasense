@@ -1,7 +1,7 @@
 #ifndef IPCP_BUFFER_H
 #define IPCP_BUFFER_H
 
-#include "port.h"
+#include "portability/port.h"
 
 typedef enum FRAMES_PROCESSING
 {

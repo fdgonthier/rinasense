@@ -15,9 +15,7 @@
 #include "factoryIPCP.h"
 #include "configRINA.h"
 #include "Ribd.h"
-#include "rstr.h"
-#include "IpcManager.h"
-
+#include "rina_name.h"
 #include "BufferManagement.h"
 
 #include "esp_log.h"

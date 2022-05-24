@@ -19,7 +19,7 @@
 #include "common.h"
 #include "IPCP.h"
 
-#include "port.h"
+#include "portability/port.h"
 
 #include "esp_log.h"
 

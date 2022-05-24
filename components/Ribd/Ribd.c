@@ -18,8 +18,8 @@
 #include "configSensor.h"
 #include "Rib.h"
 #include "RINA_API.h"
-#include "rstr.h"
 #include "du.h"
+#include "rina_name.h"
 
 int n = 0;
 static char *opcodeNamesTable[] = {[M_CONNECT] = "M_CONNECT",

@@ -4,9 +4,9 @@
 #include <string.h>
 
 /* Portability */
-#include "port.h"
-#include "posix/semaphore.h"
-#include "posix/pthread.h"
+#include "portability/rslist.h"
+#include "portability/posix/semaphore.h"
+#include "portability/posix/pthread.h"
 
 #include "configSensor.h"
 

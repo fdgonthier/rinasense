@@ -2,7 +2,7 @@
 #include <glib.h>
 
 #include "glib_rslist.h"
-#include "rslist.h"
+#include "portability/rslist.h"
 
 void vRsListInit( RsList_t * const pList )
 {

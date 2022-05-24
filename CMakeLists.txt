@@ -88,26 +88,11 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
     ${FREERTOS_POSIX_INCLUDES}
     ${FREERTOS_TRACE_INCLUDES}
   )
+  set_target_properties(freertos PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
   # Create a link to the 'freertos' include directory so that #include
   # statement such as #include "freertos/FreeRTOS.h" work.
   file(CREATE_LINK ${FREERTOS_DIR}/Source/include ${CMAKE_CURRENT_BINARY_DIR}/freertos SYMBOLIC)
-
-  #
-  # Portability layer
-  #
-  include("${CMAKE_CURRENT_SOURCE_DIR}/components/Portability/${TARGET_TYPE}/CMakeLists.txt")
-
-  #
-  # Component: CDAP
-  #
-  file(GLOB CdapProto_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/components/CdapProto/*.c"
-  )
-  set(CdapProto_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/components/CdapProto/include")
-  add_library(CdapProto STATIC ${CdapProto_SOURCES})
-  target_include_directories(CdapProto PUBLIC ${CdapProto_INCLUDES})
-  set_target_properties(CdapProto PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
   #
   # Component: configRINA
@@ -119,6 +104,53 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
   add_library(configRINA STATIC ${configRINA_SOURCES})
   target_include_directories(configRINA PUBLIC ${configRINA_INCLUDES})
   set_target_properties(configRINA PROPERTIES EXCLUDE_FROM_ALL TRUE)
+
+  #
+  # Portability layer
+  #
+  include("${CMAKE_CURRENT_SOURCE_DIR}/components/Portability/${TARGET_TYPE}/CMakeLists.txt")
+
+  #
+  # Component: configSensor
+  #
+  file(GLOB configSensor_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/components/configSensor/*.c"
+  )
+  set(configSensor_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/components/configSensor/include")
+  add_library(configSensor STATIC ${configSensor_SOURCES})
+  target_include_directories(configSensor PUBLIC ${configSensor_INCLUDES})
+  set_target_properties(configSensor PROPERTIES EXCLUDE_FROM_ALL TRUE)
+
+  #
+  # Component: Common
+  #
+  set(Common_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/Common")
+  set(Common_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/components/Common/include")
+  set(Common_TEST_DIR "${Common_DIR}/tests")
+
+  file(GLOB Common_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/components/Common/*.c"
+  )
+
+  add_library(Common STATIC ${Common_SOURCES})
+  target_include_directories(Common PUBLIC
+    ${Common_INCLUDES}
+    ${portability_INCLUDES}
+    ${configSensor_INCLUDES}
+  )
+  #set_target_properties(Common PROPERTIES EXCLUDE_FROM_ALL TRUE)
+  include("${Common_TEST_DIR}/CMakeLists.txt")
+
+  #
+  # Component: CDAP
+  #
+  file(GLOB CdapProto_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/components/CdapProto/*.c"
+  )
+  set(CdapProto_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/components/CdapProto/include")
+  add_library(CdapProto STATIC ${CdapProto_SOURCES})
+  target_include_directories(CdapProto PUBLIC ${CdapProto_INCLUDES})
+  set_target_properties(CdapProto PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
   #
   # Component: IPCP
@@ -144,17 +176,6 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
     ${Enrollment_INCLUDES}
   )
   set_target_properties(IPCP PROPERTIES EXCLUDE_FROM_ALL TRUE)
-
-  #
-  # Component: configSensor
-  #
-  file(GLOB configSensor_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/components/configSensor/*.c"
-  )
-  set(configSensor_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/components/configSensor/include")
-  add_library(configSensor STATIC ${configSensor_SOURCES})
-  target_include_directories(configSensor PUBLIC ${configSensor_INCLUDES})
-  set_target_properties(configSensor PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
   #
   # Component: ARP826

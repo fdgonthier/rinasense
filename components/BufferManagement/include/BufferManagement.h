@@ -1,7 +1,7 @@
 #include "buffer.h"
 #include "configSensor.h"
-#include "port.h"
-#include "posix/semaphore.h"
+#include "portability/port.h"
+#include "portability/posix/semaphore.h"
 
 //Structure used to store buffer used by the Interface Wifi (Change)
 // Some attributes are not needed.

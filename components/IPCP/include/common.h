@@ -42,17 +42,7 @@ typedef char *string_t;
 typedef unsigned int uint_t;
 typedef unsigned int timeout_t;
 /* SeqNumLength field 4 Byte*/
-typedef uint32_t seqNum_t;
-;
-
-typedef struct xName_info
-{
-        string_t pcProcessName;     /*> Process Name*/
-        string_t pcProcessInstance; /*> Process Instance*/
-        string_t pcEntityName;      /*> Entity Name*/
-        string_t pcEntityInstance;  /*> Entity Instance*/
-
-} name_t;
+typedef uint32_t seqNum_t;;
 
 struct flowSpec_t
 {
@@ -331,13 +321,6 @@ BaseType_t is_qos_id_ok(qosId_t id);
 BaseType_t is_ipcp_id_ok(ipcProcessId_t id);
 
 // name_t *xRinaNameCreate(void);
-
-// BaseType_t xRinaNameFromString(const string_t pcString, name_t *xName);
-// void xRinaNameFree(name_t *xName);
-
-// BaseType_t xRINAStringDup(const string_t *pcSrc, string_t **pcDst);
-
-// name_t *xRINAstringToName(const string_t *pxInput);
 
 void memcheck(void);
 

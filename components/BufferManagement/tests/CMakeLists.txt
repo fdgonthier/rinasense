@@ -1,11 +1,11 @@
-add_executable(bftest1 "${CMAKE_CURRENT_LIST_DIR}/bftest1.c")
-target_link_libraries(bftest1
+add_executable(test_buffer_management "${CMAKE_CURRENT_LIST_DIR}/test_buffer_management.c")
+target_link_libraries(test_buffer_management
   BufferManagement
   portability
   pthread
 )
 
 add_test(
-  NAME bftest1
-  COMMAND "./bftest1"
+  NAME test_buffer_management
+  COMMAND "./test_buffer_management"
 )

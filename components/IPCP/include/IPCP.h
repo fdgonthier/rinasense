@@ -9,7 +9,7 @@
 #include "ARP826.h"
 #include "pci.h"
 #include "common.h"
-//#include "Rmt.h"
+#include "rina_name.h"
 
 /*-----------------------------------------------------------*/
 /* Miscellaneous structure and definitions. */

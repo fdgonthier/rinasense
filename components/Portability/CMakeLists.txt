@@ -10,6 +10,7 @@ else()
     SRCS
     "freertos_idf/rslist.c"
     "freertos_idf/rsmem.c"
+    "freertos_idf/rslog.c"
 
     INCLUDE_DIRS ${portability_INCLUDES})
 endif()

@@ -8,6 +8,7 @@
 #include "esp_log.h"
 
 #include "common.h"
+#include "rina_name.h"
 
 portId_t port_id_bad(void)
 {
@@ -69,182 +70,21 @@ name_t *xRinaNameCreate(void)
 
         return result;
 }
+*/
 
-
-void vRINANameFini(name_t * n)
-{
-        configASSERT(n);
-
-        if (n->pcProcessName) {
-                vPortFree(n->pcProcessName);
-                n->pcProcessName = NULL;
-        }
-        if (n->pcProcessInstance) {
-                vPortFree(n->pcProcessInstance);
-                n->pcProcessInstance = NULL;
-        }
-        if (n->pcEntityName) {
-                vPortFree(n->pcEntityName);
-                n->pcEntityName = NULL;
-        }
-        if (n->pcEntityInstance) {
-                vPortFree(n->pcEntityInstance);
-                n->pcEntityInstance = NULL;
-        }
-
-        ESP_LOGI(TAG_RINA,"Name at %pK finalized successfully", n);
-}
-
-void xRinaNameFree(name_t *xName);
-
-void xRinaNameFree(name_t *xName)
-{
-        if (!xName)
-        {
-                return;
-        }
-
-        if (xName->pcProcessName)
-        {
-                vPortFree(xName->pcProcessName);
-                xName->pcProcessName = NULL;
-        }
-
-        if (xName->pcProcessInstance)
-        {
-                vPortFree(xName->pcProcessInstance);
-                xName->pcProcessInstance = NULL;
-        }
-
-        if (xName->pcEntityName)
-        {
-                vPortFree(xName->pcEntityName);
-                xName->pcEntityName = NULL;
-        }
-
-        if (xName->pcEntityInstance)
-        {
-                vPortFree(xName->pcEntityInstance);
-                xName->pcEntityInstance = NULL;
-        }
-
-        vPortFree(xName);
-}
-
-BaseType_t xRinaNameFromString(const string_t pcString, name_t *xName);
-
-BaseType_t xRinaNameFromString(const string_t pcString, name_t *xName)
-{
-        char *apn, *api, *aen, *aei;
-        char *strc = xRINAstrdup(pcString);
-        char *strc_orig = strc;
-        char **strp = &strc;
-
-        memset(xName, 0, sizeof(*xName));
-
-        if (!strc)
-                return pdFALSE;
-
-        apn = strsep(strp, "|");
-        api = strsep(strp, "|");
-        aen = strsep(strp, "|");
-        aei = strsep(strp, "|");
-
-
-        if (!apn) {
-                vPortFree(strc_orig);
-                return pdFALSE;
-        }
-
-
-
-        xName->pcProcessName = (apn && strlen(apn)) ? xRINAstrdup(apn) : NULL;
-        xName->pcProcessInstance = (api && strlen(api)) ? xRINAstrdup(api) : NULL;
-        xName->pcEntityName = (aen && strlen(aen)) ? xRINAstrdup(aen) : NULL;
-        xName->pcEntityInstance = (aei && strlen(aei)) ? xRINAstrdup(aei) : NULL;
-
-
-
-        if ((apn && strlen(apn) && !xName->pcProcessName) ||
-            (api && strlen(api) && !xName->pcProcessInstance) ||
-            (aen && strlen(aen) && !xName->pcEntityName) ||
-            (aei && strlen(aei) && !xName->pcEntityInstance))
-        {
-                xRinaNameFree(xName);
-                return pdFALSE;
-        }
-
-        vPortFree(strc_orig);
-
-        return pdTRUE;
-}
-
-char *xRINAstrdup(const char *s)
-{
-        size_t len;
-        char *buf;
-
-        if (!s)
-                return NULL;
-
-        len = strlen(s) + 1;
-        buf = pvPortMalloc(len);
-        if (buf)
-                memcpy(buf, s, len);
-
-        return buf;
-}
-
-BaseType_t xRINAStringDup(const string_t *src, string_t **dst)
-{
-        if (!dst)
-        {
-                ESP_LOGE(TAG_RINA, "Destination string is NULL, cannot copy");
-                return pdFALSE;
-        }
-
-        if (src)
-        {
-                *dst = xRINAstrdup(src);
-                if (!*dst)
-                {
-                        ESP_LOGE(TAG_RINA, "Cannot duplicate source string "
-                                           "in kernel-space");
-                        return pdFALSE;
-                }
-        }
-        else
-        {
-                ESP_LOGE(TAG_RINA, "Duplicating a NULL source string ...");
-                *dst = NULL;
-        }
-
-        return pdTRUE;
-}*/
-#if 0
-name_t *xRINANameInitFrom(name_t *dst,
-					   const string_t *process_name,
-					   const string_t *process_instance,
-					   const string_t *entity_name,
-					   const string_t *entity_instance)
-{
-	if (!dst)
-		return NULL;
-
-	/* Clean up the destination, leftovers might be there ... */
-	xRinaNameFree(dst);
-        //name_fini(dst);
-
-	//ASSERT(name_is_initialized(dst));
-
-	/* Boolean shortcuits ... */
-	if (xRINAStringDup(process_name, &dst->pcProcessName) ||
-		xRINAStringDup( process_instance, &dst->pcProcessInstance) ||
-		xRINAStringDup( entity_name, &dst->pcEntityName) ||
-		xRINAStringDup( entity_instance, &dst->pcEntityInstance))
-	{
-		vRINANameFini(dst);
-		return NULL;
+void memcheck(void){
+	// perform  free memory check
+	int blockSize = 16;
+	int i = 1;
+        static int size = 0;
+	printf("Checking memory with blocksize %d char ...\n", blockSize);
+	while (true) {
+		char *p = (char *) malloc(i * blockSize);
+		if (p == NULL){
+			break;
+		}
+		free(p);
+		++i;
 	}
 
 	return dst;
@@ -328,5 +168,5 @@ void memcheck(void)
 static int invoke_id = 1;
 int get_next_invoke_id(void)
 {
-        return (invoke_id % INT_MAX == 0) ? (invoke_id = 1) : invoke_id++;
+    return (invoke_id % INT_MAX == 0) ? (invoke_id = 1) : invoke_id++;
 }

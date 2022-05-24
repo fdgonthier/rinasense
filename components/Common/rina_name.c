@@ -1,18 +1,24 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "freertos/FreeRTOS.h"
-#include "esp_heap_caps.h"
+#include "rina_name.h"
+#include "configSensor.h"
 
-#include "common.h"
+#include "portability/rslist.h"
+#include "portability/rsmem.h"
+#include "portability/rslog.h"
 
-#include "esp_log.h"
+#define TAG_RINA_NAME "rina_name"
+
+#ifndef configASSERT
+#define configASSERT
+#endif
 
 name_t *pxRStrNameCreate(void)
 {
         name_t *pxTmp;
 
-        pxTmp = pvPortMalloc(sizeof(*pxTmp));
+        pxTmp = pvRsMemAlloc(sizeof(*pxTmp));
         if (!pxTmp)
                 return NULL;
         memset(pxTmp, 0, sizeof(*pxTmp));
@@ -26,26 +32,26 @@ void vRstrNameFini(name_t *n)
 
         if (n->pcProcessName)
         {
-                vPortFree(n->pcProcessName);
+                vRsMemFree(n->pcProcessName);
                 n->pcProcessName = NULL;
         }
         if (n->pcProcessInstance)
         {
-                vPortFree(n->pcProcessInstance);
+                vRsMemFree(n->pcProcessInstance);
                 n->pcProcessInstance = NULL;
         }
         if (n->pcEntityName)
         {
-                vPortFree(n->pcEntityName);
+                vRsMemFree(n->pcEntityName);
                 n->pcEntityName = NULL;
         }
         if (n->pcEntityInstance)
         {
-                vPortFree(n->pcEntityInstance);
+                vRsMemFree(n->pcEntityInstance);
                 n->pcEntityInstance = NULL;
         }
 
-        ESP_LOGI(TAG_IPCPMANAGER, "Name at %pK finalized successfully", n);
+        LOGI(TAG_RINA_NAME, "Name at %pK finalized successfully", n);
 }
 
 void vRstrNameDestroy(name_t *pxName)
@@ -54,9 +60,9 @@ void vRstrNameDestroy(name_t *pxName)
 
         vRstrNameFini(pxName);
 
-        vPortFree(pxName);
+        vRsMemFree(pxName);
 
-        ESP_LOGI(TAG_IPCPMANAGER, "Name at %pK destroyed successfully", pxName);
+        LOGI(TAG_RINA_NAME, "Name at %pK destroyed successfully", pxName);
 }
 
 void vRstrNameFree(name_t *xName)
@@ -68,32 +74,32 @@ void vRstrNameFree(name_t *xName)
 
         if (xName->pcProcessName)
         {
-                vPortFree(xName->pcProcessName);
+                vRsMemFree(xName->pcProcessName);
                 xName->pcProcessName = NULL;
         }
 
         if (xName->pcProcessInstance)
         {
-                vPortFree(xName->pcProcessInstance);
+                vRsMemFree(xName->pcProcessInstance);
                 xName->pcProcessInstance = NULL;
         }
 
         if (xName->pcEntityName)
         {
-                vPortFree(xName->pcEntityName);
+                vRsMemFree(xName->pcEntityName);
                 xName->pcEntityName = NULL;
         }
 
         if (xName->pcEntityInstance)
         {
-                vPortFree(xName->pcEntityInstance);
+                vRsMemFree(xName->pcEntityInstance);
                 xName->pcEntityInstance = NULL;
         }
 
-        vPortFree(xName);
+        vRsMemFree(xName);
 }
 
-BaseType_t xRinaNameFromString(const string_t pcString, name_t *xName);
+//BaseType_t xRinaNameFromString(const string_t pcString, name_t *xName);
 
 char *pcRstrDup(const char *s)
 {
@@ -104,24 +110,26 @@ char *pcRstrDup(const char *s)
                 return NULL;
 
         len = strlen(s) + 1;
-        // ESP_LOGE(TAG_RIB, "Len RstrDup:%d", len);
-        buf = pvPortMalloc(len);
-        memset(buf, 0, len);
+        LOGE(TAG_RINA_NAME, "Len RstrDup:%d", len);
+        buf = pvRsMemAlloc(len);
+        memset(buf,0,len);
         if (buf)
                 memcpy(buf, s, len);
 
         return buf;
 }
 
-BaseType_t xRstringDup(const string_t *pxSrc, string_t **pxDst)
+bool_t xRstringDup(const string_t *pxSrc, string_t **pxDst)
 {
-        // ESP_LOGE(TAG_RINA, "Free Heap Size: %d", xPortGetFreeHeapSize());
-        // ESP_LOGE(TAG_RINA, "Minimum Ever Heap Size: %d", xPortGetMinimumEverFreeHeapSize());
-        heap_caps_check_integrity_all(pdTRUE);
+#ifdef __FREERTOS__
+        LOGE(TAG_RINA, "Free Heap Size: %d", xPortGetFreeHeapSize());
+        LOGE(TAG_RINA, "Minimum Ever Heap Size: %d", xPortGetMinimumEverFreeHeapSize());
+        heap_caps_check_integrity_all(true);
+#endif
         if (!pxDst)
         {
-                ESP_LOGE(TAG_RINA, "Destination string is NULL, cannot copy");
-                return pdFALSE;
+                LOGE(TAG_RINA_NAME, "Destination string is NULL, cannot copy");
+                return false;
         }
 
         if (pxSrc)
@@ -129,44 +137,45 @@ BaseType_t xRstringDup(const string_t *pxSrc, string_t **pxDst)
                 *pxDst = pcRstrDup(pxSrc);
                 if (!*pxDst)
                 {
-                        ESP_LOGE(TAG_RINA, "Cannot duplicate source string "
+                        LOGE(TAG_RINA_NAME, "Cannot duplicate source string "
                                            "in kernel-space");
-                        return pdFALSE;
+                        return false;
                 }
         }
         else
         {
-                ESP_LOGE(TAG_RINA, "Duplicating a NULL source string ...");
+                LOGE(TAG_RINA_NAME, "Duplicating a NULL source string ...");
                 *pxDst = NULL;
         }
 
-        return pdTRUE;
+        return true;
 }
 
-static BaseType_t xRstrNameCpy(const name_t *pxSrc, name_t *pxDst)
+
+bool_t xRstrNameCpy(const name_t *pxSrc, name_t *pxDst)
 {
         if (!pxSrc || !pxDst)
-                return pdFALSE;
+                return false;
 
-        ESP_LOGI(TAG_IPCPMANAGER, "Copying name %pK into %pK", pxSrc, pxDst);
+        LOGI(TAG_RINA_NAME, "Copying name %pK into %pK", pxSrc, pxDst);
 
         vRstrNameFini(pxDst);
 
         // ASSERT(name_is_initialized(pxDst));
 
         /* We rely on short-boolean evaluation ... :-) */
-        if (xRstringDup(pxSrc->pcProcessName, &pxDst->pcProcessName) ||
-            xRstringDup(pxSrc->pcProcessInstance, &pxDst->pcProcessInstance) ||
-            xRstringDup(pxSrc->pcEntityName, &pxDst->pcEntityName) ||
-            xRstringDup(pxSrc->pcEntityInstance, &pxDst->pcEntityInstance))
+        if (xRstringDup(pxSrc->pcProcessName, &pxDst->pcProcessName)
+            || xRstringDup(pxSrc->pcProcessInstance, &pxDst->pcProcessInstance)
+            || xRstringDup(pxSrc->pcEntityName, &pxDst->pcEntityName)
+            || xRstringDup(pxSrc->pcEntityInstance, &pxDst->pcEntityInstance))
         {
                 vRstrNameFini(pxDst);
-                return pdFALSE;
+                return false;
         }
 
-        ESP_LOGI(TAG_IPCPMANAGER, "Name %pK copied successfully into %pK", pxSrc, pxDst);
+        LOGI(TAG_RINA_NAME, "Name %pK copied successfully into %pK", pxSrc, pxDst);
 
-        return pdTRUE;
+        return true;
 }
 
 name_t *xRINANameInitFrom(name_t *pxDst,
@@ -179,7 +188,7 @@ name_t *xRINANameInitFrom(name_t *pxDst,
                 return NULL;
 
         /* Clean up the destination, leftovers might be there ... */
-        vRstrNameFree(pxDst);
+        vRstrNameFini(pxDst);
         // name_fini(pxDst);
 
         // ASSERT(name_is_initialized(pxDst));
@@ -207,7 +216,7 @@ name_t *xRINAstringToName(const string_t *pxInput)
         string_t *tmp_en = NULL;
         string_t *tmp_ei = NULL;
 
-        ESP_LOGE(TAG_RINA, "pxInput: %s", *pxInput);
+        LOGE(TAG_RINA_NAME, "pxInput: %s", *pxInput);
 
         if (pxInput)
         {
@@ -226,38 +235,30 @@ name_t *xRINAstringToName(const string_t *pxInput)
                 tmp_ei = strsep(&tmp2, DELIMITER);
         }
 
-        ESP_LOGE(TAG_RINA, "tmp_pn: %s", *tmp_pn);
+        LOGE(TAG_RINA_NAME, "tmp_pn: %s", *tmp_pn);
         pxName = pxRStrNameCreate();
         if (!pxName)
         {
                 if (tmp1)
-                        vPortFree(tmp1);
+                        vRsMemFree(tmp1);
                 return NULL;
         }
 
         if (!xRINANameInitFrom(pxName, tmp_pn, tmp_pi, tmp_en, tmp_ei))
         {
-                vRstrNameFree(pxName);
+                vRstrNameFini(pxName);
                 if (tmp1)
-                        vPortFree(tmp1);
+                        vRsMemFree(tmp1);
                 return NULL;
         }
 
         if (tmp1)
-                vPortFree(tmp1);
+                vRsMemFree(tmp1);
 
         return pxName;
 }
 
-/**
- * @brief Create a Rina Name Structure using a string separated
- * by the character "|".
- *
- * @param pcString String the type "name|instance|name|instance"
- * @param xName pointer name struct to be filled with the string.
- * @return BaseType_t
- */
-BaseType_t xRinaNameFromString(const string_t pcString, name_t *pxName)
+bool_t xRinaNameFromString(const string_t pcString, name_t *xName)
 {
         ESP_LOGE(TAG_RINA, "Calling: %s", __func__);
         char *apn, *api, *aen, *aei;
@@ -268,7 +269,7 @@ BaseType_t xRinaNameFromString(const string_t pcString, name_t *pxName)
         memset(pxName, 0, sizeof(*pxName));
 
         if (!strc)
-                return pdFALSE;
+                return false;
 
         apn = strsep(strp, "|");
         api = strsep(strp, "|");
@@ -277,8 +278,8 @@ BaseType_t xRinaNameFromString(const string_t pcString, name_t *pxName)
 
         if (!apn)
         {
-                vPortFree(strc_orig);
-                return pdFALSE;
+                vRsMemFree(strc_orig);
+                return false;
         }
 
         pxName->pcProcessName = (apn && strlen(apn)) ? pcRstrDup(apn) : NULL;
@@ -296,13 +297,13 @@ BaseType_t xRinaNameFromString(const string_t pcString, name_t *pxName)
             (aen && strlen(aen) && !pxName->pcEntityName) ||
             (aei && strlen(aei) && !pxName->pcEntityInstance))
         {
-                vRstrNameFree(pxName);
-                return pdFALSE;
+                vRstrNameFini(xName);
+                return false;
         }
 
-        vPortFree(strc_orig);
+        vRsMemFree(strc_orig);
 
-        return pdTRUE;
+        return true;
 }
 
 /**
