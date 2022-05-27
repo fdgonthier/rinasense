@@ -115,7 +115,7 @@ char *pcRstrDup(const char *s)
         return buf;
 }
 
-bool_t xRstringDup(const string_t *pxSrc, string_t **pxDst)
+bool_t xRstringDup(const string_t pxSrc, string_t *pxDst)
 {
 #ifdef __FREERTOS__
         LOGE(TAG_RINA, "Free Heap Size: %d", xPortGetFreeHeapSize());

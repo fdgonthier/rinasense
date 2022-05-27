@@ -1,32 +1,39 @@
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include "rina_name.h"
 
+/* Tests plain string duplication. */
+void testStringDup()
+{
+    const string_t s1 = "hello";
+    string_t s2, s3;
+
+    RsAssert(xRstringDup(s1, &s2));
+    RsAssert(strcmp(s1, s2) == 0);
+
+    RsAssert(xRstringDup(s1, &s3));
+    RsAssert(strcmp(s1, s3) == 0);
+    RsAssert(s1 != s3);
+
+    vRsMemFree(s2);
+    vRsMemFree(s3);
+}
+
+/* Test that RinaNameFromString breaks down a name in all its
+ * component. */
+void testRinaNameBreakdown()
+{
+    name_t n1;
+
+    RsAssert(xRinaNameFromString("e1|e2|e3|e4", &n1));
+    RsAssert(strcmp(n1.pcProcessName, "e1") == 0);
+    RsAssert(strcmp(n1.pcProcessInstance, "e2") == 0);
+    RsAssert(strcmp(n1.pcEntityName, "e3") == 0);
+    RsAssert(strcmp(n1.pcEntityInstance, "e4") == 0);
+    vRstrNameFini(&n1);
+}
+
 int main() {
-    {
-        const string_t s1 = "hello";
-        string_t s2, s3;
-
-        xRstringDup(s1, &s2);
-        assert(strcmp(s1, s2) == 0);
-
-        xRstringDup(s1, &s3);
-        assert(strcmp(s1, s3) == 0);
-        assert(s1 != s3);
-
-        vRsMemFree(s1);
-        vRsMemFree(s2);
-    }
-
-    {
-        name_t n1;
-
-        xRinaNameFromString("processName|processInstance|entityName|entityInstance", &n1);
-        assert(strcmp(n1.pcProcessName, "processName") == 0);
-        assert(strcmp(n1.pcProcessInstance, "processInstance") == 0);
-        assert(strcmp(n1.pcEntityName, "entityName") == 0);
-        assert(strcmp(n1.pcEntityInstance, "entityInstance") == 0);
-        vRstrNameDestroy(&n1);
-    }
+    testStringDup();
+    testRinaNameBreakdown();
 }

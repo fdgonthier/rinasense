@@ -15,7 +15,7 @@ name_t *pxRstrNameDup(const name_t *pxSrc);
 
 void vRstrNameDestroy(name_t *pxName);
 
-bool_t xRstringDup(const string_t *pxSrc, string_t **pxDst);
+bool_t xRstringDup(const string_t pxSrc, string_t *pxDst);
 
 name_t *xRinaNameCreate(void);
 
@@ -23,7 +23,7 @@ bool_t xRinaNameFromString(const string_t pcString, name_t * xName);
 
 void xRinaNameFree(name_t *xName);
 
-bool_t xRINAStringDup(const string_t * pcSrc, string_t ** pcDst);
+bool_t xRINAStringDup(const string_t pcSrc, string_t * pcDst);
 
 name_t *xRINAstringToName(const string_t *pxInput);
 
