@@ -1,6 +1,0 @@
-  /home/neumann/W/Tria/rinasense/components/Common/include:
-  total used in directory 24 available 289.9 GiB
-  drwxr-xr-x 2 neumann neumann 4096 May 26 11:38 .
-  drwxr-xr-x 4 neumann neumann 4096 May 26 11:38 ..
-  -rw-r--r-- 1 neumann neumann 1550 May 26 11:38 rina_gpha.h
-  -rw-r--r-- 1 neumann neumann  816 May 24 17:02 rina_name.h
