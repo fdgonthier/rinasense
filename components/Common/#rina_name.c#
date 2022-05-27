@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <string.h>
 
@@ -59,6 +60,7 @@ void vRstrNameDestroy(name_t *pxName)
         vRsMemFree(pxName);
 
         LOGI(TAG_RINA_NAME, "Name at %pK destroyed successfully", pxName);
+
 }
 
 void vRstrNameFree(name_t *xName)
@@ -96,6 +98,7 @@ void vRstrNameFree(name_t *xName)
 }
 
 //BaseType_t xRinaNameFromString(const string_t pcString, name_t *xName);
+
 
 char *pcRstrDup(const char *s)
 {
@@ -157,7 +160,7 @@ bool_t xRstrNameCpy(const name_t *pxSrc, name_t *pxDst)
 
         vRstrNameFini(pxDst);
 
-        // ASSERT(name_is_initialized(pxDst));
+        //ASSERT(name_is_initialized(pxDst));
 
         /* We rely on short-boolean evaluation ... :-) */
         if (xRstringDup(pxSrc->pcProcessName, &pxDst->pcProcessName)
@@ -181,7 +184,7 @@ name_t *xRINANameInitFrom(name_t *pxDst,
                           const string_t entity_instance)
 {
         if (!pxDst)
-                return NULL;
+"r                return NULL;
 
         /* Clean up the destination, leftovers might be there ... */
         vRstrNameFini(pxDst);
@@ -256,13 +259,12 @@ name_t *xRINAstringToName(const string_t pxInput)
 
 bool_t xRinaNameFromString(const string_t pcString, name_t *xName)
 {
-        ESP_LOGE(TAG_RINA, "Calling: %s", __func__);
         char *apn, *api, *aen, *aei;
         char *strc = pcRstrDup(pcString);
         char *strc_orig = strc;
         char **strp = &strc;
 
-        memset(pxName, 0, sizeof(*pxName));
+        memset(xName, 0, sizeof(*xName));
 
         if (!strc)
                 return false;
@@ -278,20 +280,15 @@ bool_t xRinaNameFromString(const string_t pcString, name_t *xName)
                 return false;
         }
 
-        pxName->pcProcessName = (apn && strlen(apn)) ? pcRstrDup(apn) : NULL;
-        pxName->pcProcessInstance = (api && strlen(api)) ? pcRstrDup(api) : NULL;
-        pxName->pcEntityName = (aen && strlen(aen)) ? pcRstrDup(aen) : NULL;
-        pxName->pcEntityInstance = (aei && strlen(aei)) ? pcRstrDup(aei) : NULL;
+        xName->pcProcessName = (apn && strlen(apn)) ? pcRstrDup(apn) : NULL;
+        xName->pcProcessInstance = (api && strlen(api)) ? pcRstrDup(api) : NULL;
+        xName->pcEntityName = (aen && strlen(aen)) ? pcRstrDup(aen) : NULL;
+        xName->pcEntityInstance = (aei && strlen(aei)) ? pcRstrDup(aei) : NULL;
 
-        ESP_LOGE(TAG_FA, "RinaNameFromString - pcProcessName:%s", pxName->pcProcessName);
-        ESP_LOGE(TAG_FA, "RinaNameFromString - pcProcessInstance:%s", pxName->pcProcessInstance);
-        ESP_LOGE(TAG_FA, "RinaNameFromString - pcEntityName:%s", pxName->pcEntityName);
-        ESP_LOGE(TAG_FA, "RinaNameFromString - pcEntityInstance:%s", pxName->pcEntityInstance);
-
-        if ((apn && strlen(apn) && !pxName->pcProcessName) ||
-            (api && strlen(api) && !pxName->pcProcessInstance) ||
-            (aen && strlen(aen) && !pxName->pcEntityName) ||
-            (aei && strlen(aei) && !pxName->pcEntityInstance))
+        if ((apn && strlen(apn) && !xName->pcProcessName) ||
+            (api && strlen(api) && !xName->pcProcessInstance) ||
+            (aen && strlen(aen) && !xName->pcEntityName) ||
+            (aei && strlen(aei) && !xName->pcEntityInstance))
         {
                 vRstrNameFini(xName);
                 return false;
@@ -302,12 +299,7 @@ bool_t xRinaNameFromString(const string_t pcString, name_t *xName)
         return true;
 }
 
-/**
- * @brief Duplicate a Rina Name structure
- *
- * @param pxSrc Pointer to the Rina Name structure
- * @return Pointer to the Rina Name duplicated.
- */
+
 name_t *pxRstrNameDup(const name_t *pxSrc)
 {
         name_t *pxTmp;
@@ -320,7 +312,7 @@ name_t *pxRstrNameDup(const name_t *pxSrc)
                 return NULL;
         if (xRstrNameCpy(pxSrc, pxTmp))
         {
-                vRstrNameDestroy(pxTmp);
+               vRstrNameDestroy(pxTmp);
                 return NULL;
         }
 

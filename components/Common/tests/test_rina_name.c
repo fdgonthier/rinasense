@@ -33,7 +33,30 @@ void testRinaNameBreakdown()
     vRstrNameFini(&n1);
 }
 
+void testRinaNameFromString()
+{
+    name_t *n1;
+
+    RsAssert((n1 = pxRStrNameCreate()) != NULL);
+    RsAssert((n1 = xRINANameInitFrom(n1, "e1", "e2", "e3", "e4")) != NULL);
+    RsAssert(strcmp(n1->pcProcessName, "e1") == 0);
+    RsAssert(strcmp(n1->pcProcessInstance, "e2") == 0);
+    RsAssert(strcmp(n1->pcEntityName, "e3") == 0);
+    RsAssert(strcmp(n1->pcEntityInstance, "e4") == 0);
+    vRstrNameDestroy(n1);
+}
+
+void testRinaStringToName()
+{
+    name_t *n1;
+
+    RsAssert((n1 = xRINAstringToName("e1|e2|e3|e4")) != NULL);
+    vRstrNameDestroy(n1);
+}
+
 int main() {
     testStringDup();
     testRinaNameBreakdown();
+    testRinaNameFromString();
+    testRinaStringToName();
 }

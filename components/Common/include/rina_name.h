@@ -11,6 +11,16 @@ typedef struct xName_info
 	string_t pcEntityInstance;		/*> Entity Instance*/
 } name_t;
 
+name_t *xRINANameInitFrom(name_t *pxDst,
+                          const string_t process_name,
+                          const string_t process_instance,
+                          const string_t entity_name,
+                          const string_t entity_instance);
+
+void vRstrNameFini(name_t *n);
+
+name_t *pxRStrNameCreate(void);
+
 name_t *pxRstrNameDup(const name_t *pxSrc);
 
 void vRstrNameDestroy(name_t *pxName);
@@ -25,7 +35,7 @@ void xRinaNameFree(name_t *xName);
 
 bool_t xRINAStringDup(const string_t pcSrc, string_t * pcDst);
 
-name_t *xRINAstringToName(const string_t *pxInput);
+name_t *xRINAstringToName(const string_t pxInput);
 
 string_t pcNameToString(const name_t *n);
 
