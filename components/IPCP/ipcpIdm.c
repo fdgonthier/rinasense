@@ -10,6 +10,8 @@
  */
 #include "freertos/FreeRTOS.h"
 
+#include "portability/port.h"
+
 #include "common.h"
 #include "configRINA.h"
 #include "configSensor.h"

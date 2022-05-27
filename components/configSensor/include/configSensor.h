@@ -42,7 +42,7 @@
 	#define TAG_WIFI							"[NetInterface]"
 
 		//Delimiter for Encode name
-	#define DELIMITER 								"/"
+	#define DELIMITER 								"|"
 
 
 /*********  Define BUFFERS Parameters *************/

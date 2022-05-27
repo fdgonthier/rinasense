@@ -13,6 +13,7 @@
 /* RINA includes. */
 #include "ARP826.h"
 #include "BufferManagement.h"
+#include "rina_name.h"
 
 /* The obtained network buffer must be large enough to hold a packet that might
  * replace the packet that was requested to be sent. */
@@ -207,10 +208,12 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     size_t uxCount;
     struct timespec *ts;
 
+    /* sem_timedwait does not deal well with pTimespec being NULL. */
+    if ( pTimespec == NULL ) return NULL;
+
     if( semInitialized )
     {
         /* If there is a semaphore available, there is a network buffer available. */
-        /* FIXME: Convert xBlockTimeTicks to timespec */
         if( sem_timedwait( &xNetworkBufferSemaphore, pTimespec ) == 0 )
         {
             /* Protect the structure as it is accessed from tasks and interrupts. */

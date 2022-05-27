@@ -7,6 +7,8 @@
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 
+#include "portability/port.h"
+
 #include "IPCP.h"
 #include "common.h"
 #include "configRINA.h"

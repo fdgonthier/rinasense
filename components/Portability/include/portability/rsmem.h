@@ -1,8 +1,8 @@
-#ifndef _RSMEM_H
-#define _RSMEM_H
+#ifndef _PORTABILITY_RS_MEM_H
+#define _PORTABILITY_RS_MEM_H
 
-void * pvRsMemAlloc( size_t );
+void *pvRsMemAlloc( size_t );
 
 void vRsMemFree( void * );
 
-#endif // _RSMEM_H
+#endif // _PORTABILITY_RS_MEM_H

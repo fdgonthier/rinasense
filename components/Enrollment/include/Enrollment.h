@@ -9,7 +9,7 @@
 #define ENROLLMENT_H_INCLUDED
 
 #include "Rib.h"
-#include "normalIPCP.h"
+#include "portability/port.h"
 
 /*-----------------------------------------------------------*/
 /* Miscellaneous structure and definitions. */

@@ -5,7 +5,7 @@ if(NOT ${TARGET_TYPE} STREQUAL "idf")
   file(GLOB portability_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/components/Portability/${TARGET_TYPE}/*.c"
   )
-  set(portability_INCLUDES
+  set(Portability_INCLUDES
     "${CMAKE_CURRENT_SOURCE_DIR}/components/Portability/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/components/Portability/${TARGET_TYPE}/include"
     "${deps_INCLUDE_DIRS}"
@@ -13,7 +13,7 @@ if(NOT ${TARGET_TYPE} STREQUAL "idf")
   add_library(portability STATIC ${portability_SOURCES})
   target_link_libraries(portability PkgConfig::deps)
   target_include_directories(portability PUBLIC
-    ${portability_INCLUDES}
+    ${Portability_INCLUDES}
     ${CMAKE_CURRENT_BINARY_DIR}
   )
 endif()

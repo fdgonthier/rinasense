@@ -10,10 +10,6 @@
 
 #define TAG_RINA_NAME "rina_name"
 
-#ifndef configASSERT
-#define configASSERT
-#endif
-
 name_t *pxRStrNameCreate(void)
 {
         name_t *pxTmp;
@@ -28,7 +24,7 @@ name_t *pxRStrNameCreate(void)
 
 void vRstrNameFini(name_t *n)
 {
-        // configASSERT(n);
+        RsAssert(n);
 
         if (n->pcProcessName)
         {
@@ -56,7 +52,7 @@ void vRstrNameFini(name_t *n)
 
 void vRstrNameDestroy(name_t *pxName)
 {
-        // configASSERT(pxName);
+        RsAssert(pxName);
 
         vRstrNameFini(pxName);
 
@@ -329,4 +325,55 @@ name_t *pxRstrNameDup(const name_t *pxSrc)
         }
 
         return pxTmp;
+}
+
+string_t pcNameToString(const name_t *n)
+{
+    string_t       tmp;
+    size_t       size;
+    const string_t none     = "";
+    size_t       none_len = strlen(none);
+
+    if (!n)
+        return NULL;
+
+    size  = 0;
+
+    size += (n->pcProcessName                 ?
+             strlen(n->pcProcessName)     : none_len);
+    size += strlen(DELIMITER);
+
+    size += (n->pcProcessInstance             ?
+             strlen(n->pcProcessInstance) : none_len);
+    size += strlen(DELIMITER);
+
+    size += (n->pcEntityName                  ?
+             strlen(n->pcEntityName)      : none_len);
+    size += strlen(DELIMITER);
+
+    size += (n->pcEntityInstance              ?
+             strlen(n->pcEntityInstance)  : none_len);
+    size += strlen(DELIMITER);
+
+    tmp = pvRsMemAlloc(size);
+    memset(tmp, 0, sizeof(*tmp));
+
+    if (!tmp)
+        return NULL;
+
+    if (snprintf(tmp, size,
+                 "%s%s%s%s%s%s%s",
+                 (n->pcProcessName     ? n->pcProcessName     : none),
+                 DELIMITER,
+                 (n->pcProcessInstance ? n->pcProcessInstance : none),
+                 DELIMITER,
+                 (n->pcEntityName      ? n->pcEntityName      : none),
+                 DELIMITER,
+                 (n->pcEntityInstance  ? n->pcEntityInstance  : none)) !=
+        size - 1) {
+        vRsMemFree(tmp);
+        return NULL;
+    }
+
+    return tmp;
 }

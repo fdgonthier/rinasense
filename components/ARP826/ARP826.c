@@ -4,26 +4,25 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* FreeRTOS includes. */
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/queue.h"
-#include "freertos/semphr.h"
-
 /* RINA includes. */
 #include "ARP826.h"
 #include "BufferManagement.h"
-#include "NetworkInterface.h"
-#include "ShimIPCP.h"
-#include "configSensor.h"
-#include "common.h"
 #include "IPCP.h"
+#include "NetworkInterface.h"
+//#include "ShimIPCP.h"
+#include "configSensor.h"
+//#include "common.h"
+#include "ipcp_events.h"
 
 #include "portability/port.h"
+#include "rina_name.h"
+#include "rina_gpha.h"
 
-#include "esp_log.h"
+//#include "esp_log.h"
 
+#ifndef MAX
 #define MAX(a, b) ((a > b) ? a : b)
+#endif
 
 /* @brief Scan in the memory for a character. This implementation should be provided by
  * an external library, so it is implemented and included has FreeRTOS method.*/
@@ -42,7 +41,7 @@ ARPPacket_t *vCastPointerTo_ARPPacket_t(void *pvArgument);
 
 /* @brief Resolve a GPA by sending a Request ARP packet.
  * */
-BaseType_t xARPResolveGPA(const gpa_t *pxSpa, const gpa_t *pxTpa, const gha_t *pxSha);
+bool_t xARPResolveGPA(const gpa_t *pxSpa, const gpa_t *pxTpa, const gha_t *pxSha);
 
 /* @brief create a broadcast MAC Address to send ARP packets*/
 gha_t *pxARPCreateGHAUnknown(eGHAType_t xType);
@@ -82,91 +81,92 @@ bool_t xARPAddressGPAShrink(gpa_t *pxGpa, uint8_t ucFiller);
  *                         is being updated.
  */
 
-BaseType_t xARPAddressGPAGrow(gpa_t *pxGpa, size_t uxLength, uint8_t ucFiller)
+bool_t xARPAddressGPAGrow(gpa_t *pxGpa, size_t uxLength, uint8_t ucFiller)
 {
 	uint8_t *new_address;
 
-	if (!xShimIsGPAOK(pxGpa))
+	if (!xIsGPAOK(pxGpa))
 	{
-		ESP_LOGE(TAG_ARP, "Bad input parameter, cannot grow the GPA");
-		return pdFALSE;
+		LOGE(TAG_ARP, "Bad input parameter, cannot grow the GPA");
+		return false;
 	}
 
 	if (uxLength == 0 || uxLength < pxGpa->uxLength)
 	{
-		ESP_LOGE(TAG_ARP, "Can't grow the GPA, bad length");
-		return pdFALSE;
+		LOGE(TAG_ARP, "Can't grow the GPA, bad length");
+		return false;
 	}
 
 	if (pxGpa->uxLength == uxLength)
 	{
-		ESP_LOGD(TAG_ARP, "No needs to grow the GPA");
-		return pdTRUE;
+		LOGD(TAG_ARP, "No needs to grow the GPA");
+		return true;
 	}
 
-	// configASSERT(uxLength > pxGpa->uxLength);
+	RsAssert(uxLength > pxGpa->uxLength);
 
-	ESP_LOGD(TAG_ARP, "Growing GPA to %zd with filler 0x%02X", uxLength, ucFiller);
-	new_address = pvPortMalloc(uxLength);
+	LOGD(TAG_ARP, "Growing GPA to %zd with filler 0x%02X", uxLength, ucFiller);
+	new_address = pvRsMemAlloc(uxLength);
 	if (!new_address)
-		return pdFALSE;
+		return false;
 
 	memcpy(new_address, pxGpa->ucAddress, pxGpa->uxLength);
 	memset(new_address + pxGpa->uxLength, ucFiller, uxLength - pxGpa->uxLength);
-	vPortFree(pxGpa->ucAddress);
-	pxGpa->ucAddress = new_address;
+
+	vRsMemFree(pxGpa->pucAddress);
+	pxGpa->pucAddress = new_address;
 	pxGpa->uxLength = uxLength;
 
-	ESP_LOGD(TAG_ARP, "GPA is now %zd characters long", pxGpa->uxLength);
+	LOGD(TAG_ARP, "GPA is now %zd characters long", pxGpa->uxLength);
 
-	return pdTRUE;
+	return true;
 }
 
-BaseType_t xARPAddressGPAShrink(gpa_t *pxGpa, uint8_t ucFiller)
+bool_t xARPAddressGPAShrink(gpa_t *pxGpa, uint8_t ucFiller)
 {
-	uint8_t *pucNewAddress;
-	uint8_t *pucPosition;
+	string_t pucNewAddress;
+	string_t pucPosition;
 	size_t uxLength;
 
-	if (!xShimIsGPAOK(pxGpa))
+	if (!xIsGPAOK(pxGpa))
 	{
-		ESP_LOGE(TAG_ARP, "Bad input parameter, cannot shrink the GPA");
-		return pdFALSE;
+		LOGE(TAG_ARP, "Bad input parameter, cannot shrink the GPA");
+		return false;
 	}
 
-	ESP_LOGI(TAG_ARP, "Looking for filler 0x%02X in GPA (length = %zd)",
-			 ucFiller, pxGpa->uxLength);
+	LOGI(TAG_ARP, "Looking for filler 0x%02X in GPA (length = %zd)",
+         ucFiller, pxGpa->uxLength);
 
 	pucPosition = FreeRTOS_memscan(pxGpa->ucAddress, ucFiller, pxGpa->uxLength);
 	if (pucPosition >= pxGpa->ucAddress + pxGpa->uxLength)
 	{
-		ESP_LOGI(TAG_ARP, "GPA doesn't need to be shrinked ...");
-		return pdFALSE;
+		LOGI(TAG_ARP, "GPA doesn't need to be shrinked ...");
+		return false;
 	}
 
 	uxLength = pucPosition - pxGpa->ucAddress;
 
-	ESP_LOGI(TAG_ARP, "Shrinking GPA to %zd", uxLength);
+	LOGI(TAG_ARP, "Shrinking GPA to %zd", uxLength);
 
-	pucNewAddress = pvPortMalloc(uxLength);
+	pucNewAddress = pvRsMemAlloc(uxLength);
 	if (!pucNewAddress)
-		return pdFALSE;
+		return false;
 
 	memcpy(pucNewAddress, pxGpa->ucAddress, uxLength);
 
-	vPortFree(pxGpa->ucAddress);
-	pxGpa->ucAddress = pucNewAddress;
+	vRsMemFree(pxGpa->pucAddress);
+	pxGpa->pucAddress = pucNewAddress;
 	pxGpa->uxLength = uxLength;
 
-	return pdTRUE;
+	return true;
 }
 
 void vARPRefreshCacheEntry(const gpa_t *pxGpa, const gha_t *pxMACAddress)
 {
-	BaseType_t x = 0;
-	BaseType_t xIpcpEntry = -1;
-	BaseType_t xMacEntry = -1;
-	BaseType_t xUseEntry = 0;
+	num_t x = 0;
+	num_t xIpcpEntry = -1;
+	num_t xMacEntry = -1;
+	num_t xUseEntry = 0;
 	uint8_t ucMinAgeFound = 0U;
 
 	/* Start with the maximum possible number. */
@@ -175,7 +175,7 @@ void vARPRefreshCacheEntry(const gpa_t *pxGpa, const gha_t *pxMACAddress)
 	/* For each entry in the ARP cache table. */
 	for (x = 0; x < ARP_CACHE_ENTRIES; x++) // lookup in the cache for the MacAddress
 	{
-		BaseType_t xMatchingMAC;
+		bool_t xMatchingMAC;
 
 		if (pxMACAddress != NULL) // Check if pointer is not empty
 		{
@@ -184,17 +184,17 @@ void vARPRefreshCacheEntry(const gpa_t *pxGpa, const gha_t *pxMACAddress)
 			if (memcmp(xARPCache[x].pxMACAddress->xAddress.ucBytes, pxMACAddress->xAddress.ucBytes, sizeof(pxMACAddress->xAddress.ucBytes)) == 0)
 			{
 
-				xMatchingMAC = pdTRUE;
+				xMatchingMAC = true;
 			}
 			else
 			{
 
-				xMatchingMAC = pdFALSE;
+				xMatchingMAC = false;
 			}
 		}
 		else
 		{
-			xMatchingMAC = pdFALSE;
+			xMatchingMAC = false;
 		}
 
 		/* Check if the IPCPAddress is already on the Cache */
@@ -210,14 +210,14 @@ void vARPRefreshCacheEntry(const gpa_t *pxGpa, const gha_t *pxMACAddress)
 			}
 
 			/* See if the MAC-address also matches. */
-			if (xMatchingMAC != pdFALSE)
+			if (xMatchingMAC != false)
 			{
 				/* This function will be called for each received packet
 				 * As this is by far the most common path the coding standard
 				 * is relaxed in this case and a return is permitted as an
 				 * optimisation. */
 				xARPCache[x].ucAge = (uint8_t)MAX_ARP_AGE; // update ARP Age
-				xARPCache[x].ucValid = (uint8_t)pdTRUE;	   // update ucValid
+				xARPCache[x].ucValid = (uint8_t)true;	   // update ucValid
 				return;									   // Do not update cache entry because there is already an entry in cache.
 			}
 
@@ -228,7 +228,7 @@ void vARPRefreshCacheEntry(const gpa_t *pxGpa, const gha_t *pxMACAddress)
 			 * must be cleared. */
 			xIpcpEntry = x;
 		}
-		else if (xMatchingMAC != pdFALSE)
+		else if (xMatchingMAC != false)
 		{
 			/* Found an entry with the given MAC-address, but the IPCP-address
 			 * is different.  Continue looping to find a possible match with
@@ -277,7 +277,7 @@ void vARPRefreshCacheEntry(const gpa_t *pxGpa, const gha_t *pxMACAddress)
 	}
 
 	/* If the entry was not found, we use the oldest entry and set the IPCPaddress */
-	xARPCache[xUseEntry].pxProtocolAddress = pxGpa->ucAddress;
+	xARPCache[xUseEntry].pxProtocolAddress = pxGpa;
 
 	if (pxMACAddress != NULL)
 	{
@@ -285,19 +285,19 @@ void vARPRefreshCacheEntry(const gpa_t *pxGpa, const gha_t *pxMACAddress)
 
 		/* And this entry does not need immediate attention */
 		xARPCache[xUseEntry].ucAge = (uint8_t)MAX_ARP_AGE;
-		xARPCache[xUseEntry].ucValid = (uint8_t)pdTRUE;
+		xARPCache[xUseEntry].ucValid = (uint8_t)true;
 	}
 	else if (xIpcpEntry < 0)
 	{
 		xARPCache[xUseEntry].ucAge = (uint8_t)MAX_ARP_RETRANSMISSIONS;
-		xARPCache[xUseEntry].ucValid = (uint8_t)pdFALSE;
+		xARPCache[xUseEntry].ucValid = (uint8_t)false;
 	}
 	else
 	{
 		/* Nothing will be stored. */
 	}
 
-	ESP_LOGI(TAG_ARP, "ARP Cache Refreshed! ");
+	LOGI(TAG_ARP, "ARP Cache Refreshed! ");
 }
 
 /*-----------------------------------------------------------*/
@@ -310,32 +310,34 @@ void vARPRefreshCacheEntry(const gpa_t *pxGpa, const gha_t *pxMACAddress)
  * @param[in] ulIPCPAddress: 32-bit representation of the IPCP-address whose mapping
  *                         is being updated.
  */
-BaseType_t vARPSendRequest(gpa_t *pxTpa, gpa_t *pxSpa, gha_t *pxSha)
+bool_t vARPSendRequest(gpa_t *pxTpa, gpa_t *pxSpa, gha_t *pxSha)
 {
 	NetworkBufferDescriptor_t *pxNetworkBuffer;
 	size_t xMaxLen;
 	size_t xBufferSize;
+    struct timespec ts;
 
 	xMaxLen = MAX(pxSpa->uxLength, pxTpa->uxLength);
+    vSetMaxTimespec(&ts);
 
 	if (!xARPAddressGPAGrow(pxSpa, xMaxLen, 0x00))
 	{
-		ESP_LOGI(TAG_ARP, "Failed to grow SPA\n");
-		return pdFALSE;
+		LOGI(TAG_ARP, "Failed to grow SPA\n");
+		return false;
 	}
 
 	if (!xARPAddressGPAGrow(pxTpa, xMaxLen, 0x00))
 	{
-		ESP_LOGI(TAG_ARP, "Failed to grow TPA\n");
-		return pdFALSE;
+		LOGI(TAG_ARP, "Failed to grow TPA\n");
+		return false;
 	}
 
 	xBufferSize = sizeof(ARPPacket_t) + (xMaxLen + sizeof(pxSha->xAddress)) * 2;
+
 	/* This is called from the context of the IPCP event task, so a block time
 	 * must not be used. */
 
-	// ESP_LOGE(TAG_ARP, "Taking Buffer to send ARP Request: vARPSendRequest");
-	pxNetworkBuffer = pxGetNetworkBufferWithDescriptor(xBufferSize, (TickType_t)0U); // sizeof length ARPPacket
+	pxNetworkBuffer = pxGetNetworkBufferWithDescriptor(xBufferSize, &ts); // sizeof length ARPPacket
 
 	if (pxNetworkBuffer != NULL)
 	{
@@ -343,11 +345,10 @@ BaseType_t vARPSendRequest(gpa_t *pxTpa, gpa_t *pxSpa, gha_t *pxSha)
 
 		prvARPGeneratePacket(pxNetworkBuffer, pxSha, pxSpa, pxTpa, ARP_REQUEST);
 
-		if (xIsCallingFromIPCPTask() != pdFALSE)
+		if (xIsCallingFromIPCPTask())
 		{
-
 			/* Only the IPCP-task is allowed to call this function directly. */
-			(void)xNetworkInterfaceOutput(pxNetworkBuffer, pdTRUE);
+			(void)xNetworkInterfaceOutput(pxNetworkBuffer, true);
 		}
 		else
 		{
@@ -357,21 +358,21 @@ BaseType_t vARPSendRequest(gpa_t *pxTpa, gpa_t *pxSpa, gha_t *pxSha)
 			xSendEvent.eEventType = eNetworkTxEvent;
 			xSendEvent.pvData = pxNetworkBuffer;
 
-			if (xSendEventStructToIPCPTask(&xSendEvent, (TickType_t)portMAX_DELAY) == pdFAIL)
+			if (xSendEventStructToIPCPTask(&xSendEvent, &ts) == false)
 			{
 				/* Failed to send the message, so release the network buffer. */
 				vReleaseNetworkBufferAndDescriptor(pxNetworkBuffer);
-				return pdFALSE;
+				return false;
 			}
-			ESP_LOGI(TAG_SHIM, "send by event\n");
+			LOGI(TAG_SHIM, "send by event\n");
 		}
 	}
 	else
 	{
-		ESP_LOGI(TAG_SHIM, "BufferNetwork Null\n");
-		return pdFALSE;
+		LOGI(TAG_SHIM, "BufferNetwork Null\n");
+		return false;
 	}
-	return pdTRUE;
+	return true;
 }
 
 gha_t *pxARPCreateGHAUnknown(eGHAType_t xType)
@@ -415,7 +416,7 @@ static void prvARPGeneratePacket(NetworkBufferDescriptor_t *const pxNetworkBuffe
 {
 
 	ARPPacket_t *pxARPPacket;
-	gha_t *pxTha = pvPortMalloc(sizeof(*pxTha));
+	gha_t *pxTha = pvRsMemAlloc(sizeof(*pxTha));
 	unsigned char *pucArpPtr;
 	size_t uxLength;
 
@@ -425,8 +426,8 @@ static void prvARPGeneratePacket(NetworkBufferDescriptor_t *const pxNetworkBuffe
 
 	/* Buffer allocation ensures that buffers always have space
 	 * for an ARP packet.  */
-	// configASSERT(pxNetworkBuffer != NULL);
-	// configASSERT(pxNetworkBuffer->xDataLength >= uxLength);
+	RsAssert(pxNetworkBuffer != NULL);
+	RsAssert(pxNetworkBuffer->xDataLength >= uxLength);
 
 	pxARPPacket = vCastPointerTo_ARPPacket_t(pxNetworkBuffer->pucEthernetBuffer);
 
@@ -442,12 +443,12 @@ static void prvARPGeneratePacket(NetworkBufferDescriptor_t *const pxNetworkBuffe
 	 *  xARPHeader.xTargetHardwareAddress;
 	 */
 
-	pxARPPacket->xARPHeader.usHType = FreeRTOS_htons(0x0001);
-	pxARPPacket->xARPHeader.usPType = FreeRTOS_htons(ETH_P_RINA);
+	pxARPPacket->xARPHeader.usHType = RsHtoNS(0x0001);
+	pxARPPacket->xARPHeader.usPType = RsHtoNS(ETH_P_RINA);
 	pxARPPacket->xARPHeader.ucHALength = sizeof(pxSha->xAddress.ucBytes);
 	pxARPPacket->xARPHeader.ucPALength = pxSpa->uxLength;
 	pxARPPacket->xARPHeader.usOperation = usPtype;
-	pxARPPacket->xEthernetHeader.usFrameType = FreeRTOS_htons(ETH_P_ARP);
+	pxARPPacket->xEthernetHeader.usFrameType = RsHtoNS(ETH_P_ARP);
 
 	memcpy(pxARPPacket->xEthernetHeader.xSourceAddress.ucBytes, pxSha->xAddress.ucBytes, sizeof(pxSha->xAddress));
 	memcpy(pxARPPacket->xEthernetHeader.xDestinationAddress.ucBytes, pxTha->xAddress.ucBytes, sizeof(pxTha->xAddress));
@@ -470,17 +471,17 @@ static void prvARPGeneratePacket(NetworkBufferDescriptor_t *const pxNetworkBuffe
 
 	pxNetworkBuffer->xDataLength = uxLength;
 
-	ESP_LOGD(TAG_ARP, "Generated Request Packet ");
+	LOGD(TAG_ARP, "Generated Request Packet ");
 }
 
 void vARPRemoveCacheEntry(const gpa_t *pxGpa, const gha_t *pxMACAddress)
 {
-	BaseType_t x = 0;
+	num_t x = 0;
 
 	const string_t pcAd = "NULL\0";
 
 	gha_t *tmp = pxARPCreateGHAUnknown(MAC_ADDR_802_3);
-	gpa_t *protocolAddress = pxShimCreateGPA((uint8_t *)pcAd, 5);
+	gpa_t *protocolAddress = pxCreateGPA((uint8_t *)pcAd, 5);
 
 	ARPCacheRow_t xNullCacheEntry;
 
@@ -491,23 +492,19 @@ void vARPRemoveCacheEntry(const gpa_t *pxGpa, const gha_t *pxMACAddress)
 
 	if (pxMACAddress == NULL || pxGpa == NULL)
 	{
-		ESP_LOGE(TAG_ARP, "Bad input GPA and GHA to remove");
+		LOGE(TAG_ARP, "Bad input GPA and GHA to remove");
 		return;
 	}
 
 	/* For each entry in the ARP cache table. */
 	for (x = 0; x < ARP_CACHE_ENTRIES; x++) // lookup in the cache for the MacAddress
 	{
-
 		// Comparison between Cache MACAddress and the MacAddress looking up for.
-		if (xARPCache[x].pxMACAddress->xAddress.ucBytes == pxMACAddress->xAddress.ucBytes)
+        if (xGPACmp(xARPCache[x].pxProtocolAddress, pxGpa))
 		{
-			if (xARPCache[x].pxProtocolAddress->ucAddress == pxGpa->ucAddress)
-			{
-				xARPCache[x] = xNullCacheEntry;
-				ESP_LOGD(TAG_ARP, "ARPEntry Removed");
-				break;
-			}
+            xARPCache[x] = xNullCacheEntry;
+            LOGD(TAG_ARP, "ARPEntry Removed");
+            break;
 		}
 	}
 }
@@ -557,19 +554,19 @@ eFrameProcessingResult_t eARPProcessPacket(ARPPacket_t *const pxARPFrame)
 
 	// The field ulSpa is badly aligned, copy byte-by-byte.
 
-	usHtype = FreeRTOS_ntohs(pxARPHeader->usHType);
-	usPtype = FreeRTOS_ntohs(pxARPHeader->usPType);
+	usHtype = RsNtoHS(pxARPHeader->usHType);
+	usPtype = RsNtoHS(pxARPHeader->usPType);
 	ucHlen = pxARPHeader->ucHALength;
 	ucPlen = pxARPHeader->ucPALength;
 
-	if (pxARPHeader->usHType != FreeRTOS_htons(ARP_HARDWARE_TYPE_ETHERNET))
+	if (pxARPHeader->usHType != RsHtoNS(ARP_HARDWARE_TYPE_ETHERNET))
 	{
-		ESP_LOGE(TAG_ARP, "Unhandled ARP hardware type 0x%04X", pxARPHeader->usHType);
+		LOGE(TAG_ARP, "Unhandled ARP hardware type 0x%04X", pxARPHeader->usHType);
 		return eReturn;
 	}
 	if (ucHlen != 6)
 	{
-		ESP_LOGE(TAG_ARP, "Unhandled ARP hardware address length (%d)", ucHlen);
+		LOGE(TAG_ARP, "Unhandled ARP hardware address length (%d)", ucHlen);
 		return eReturn;
 	}
 
@@ -577,7 +574,7 @@ eFrameProcessingResult_t eARPProcessPacket(ARPPacket_t *const pxARPFrame)
 
 	if (usOperation != ARP_REPLY && usOperation != ARP_REQUEST)
 	{
-		ESP_LOGE(TAG_ARP, "Unhandled ARP operation 0x%04X", usOperation);
+		LOGE(TAG_ARP, "Unhandled ARP operation 0x%04X", usOperation);
 		return eReturn;
 	}
 
@@ -599,28 +596,28 @@ eFrameProcessingResult_t eARPProcessPacket(ARPPacket_t *const pxARPFrame)
 	ucTpa = ucPtr;
 	ucPtr = ucPtr + pxARPHeader->ucPALength;
 
-	pxTmpSpa = pxShimCreateGPA(ucSpa, (size_t)ucPlen);
-	pxTmpSha = pxShimCreateGHA(MAC_ADDR_802_3, (MACAddress_t *)ucSha);
-	pxTmpTpa = pxShimCreateGPA(ucTpa, (size_t)ucPlen);
-	pxTmpTha = pxShimCreateGHA(MAC_ADDR_802_3, (MACAddress_t *)ucTha);
-	// vARPPrintCache();
+	pxTmpSpa = pxCreateGPA(ucSpa, (size_t)ucPlen);
+	pxTmpSha = pxCreateGHA(MAC_ADDR_802_3, (MACAddress_t *)ucSha);
+	pxTmpTpa = pxCreateGPA(ucTpa, (size_t)ucPlen);
+	pxTmpTha = pxCreateGHA(MAC_ADDR_802_3, (MACAddress_t *)ucTha);
+	//vARPPrintCache();
 
 	if (xARPAddressGPAShrink(pxTmpSpa, 0x00))
 	{
-		ESP_LOGE(TAG_ARP, "Problems parsing the source GPA");
-		vShimGPADestroy(pxTmpSpa);
-		vShimGPADestroy(pxTmpTpa);
-		vShimGHADestroy(pxTmpSha);
-		vShimGHADestroy(pxTmpTha);
+		LOGE(TAG_ARP, "Problems parsing the source GPA");
+		vGPADestroy(pxTmpSpa);
+		vGPADestroy(pxTmpTpa);
+		vGHADestroy(pxTmpSha);
+		vGHADestroy(pxTmpTha);
 		return eReturn;
 	}
 	if (xARPAddressGPAShrink(pxTmpTpa, 0x00))
 	{
-		ESP_LOGE(TAG_ARP, "Got problems parsing the target GPA");
-		vShimGPADestroy(pxTmpSpa);
-		vShimGPADestroy(pxTmpTpa);
-		vShimGHADestroy(pxTmpSha);
-		vShimGHADestroy(pxTmpTha);
+ 		LOGE(TAG_ARP, "Got problems parsing the target GPA");
+		vGPADestroy(pxTmpSpa);
+		vGPADestroy(pxTmpTpa);
+		vGHADestroy(pxTmpSha);
+		vGHADestroy(pxTmpTha);
 		return eReturn;
 	}
 
@@ -643,16 +640,15 @@ eFrameProcessingResult_t eARPProcessPacket(ARPPacket_t *const pxARPFrame)
 		// handle = pvPortMalloc(sizeof(*handle));
 		// Check Cache by Address
 
-		ESP_LOGE(TAG_ARP, "ARP_REQUEST ptype 0x%04X", usOperation);
+		LOGE(TAG_ARP, "ARP_REQUEST ptype 0x%04X", usOperation);
 
 		if (eARPLookupGPA(pxTmpSpa) == eARPCacheMiss)
 		{
-			ESP_LOGE(TAG_ARP, "I don't have a table for ptype 0x%04X",
-					 usPtype);
-			vShimGPADestroy(pxTmpSpa);
-			vShimGPADestroy(pxTmpTpa);
-			vShimGHADestroy(pxTmpSha);
-			vShimGHADestroy(pxTmpTha);
+			LOGE(TAG_ARP, "I don't have a table for ptype 0x%04X", usPtype);
+			vGPADestroy(pxTmpSpa);
+			vGPADestroy(pxTmpTpa);
+			vGHADestroy(pxTmpSha);
+			vGHADestroy(pxTmpTha);
 			return eReturn;
 		}
 
@@ -676,7 +672,7 @@ eFrameProcessingResult_t eARPProcessPacket(ARPPacket_t *const pxARPFrame)
 
 	case ARP_REPLY:
 
-		pxHandle = pvPortMalloc(sizeof(*pxHandle));
+		pxHandle = pvRsMemAlloc(sizeof(*pxHandle));
 
 		pxHandle->pxHa = pxTmpSha;
 		pxHandle->pxPa = pxTmpSpa;
@@ -702,10 +698,10 @@ eFrameProcessingResult_t eARPProcessPacket(ARPPacket_t *const pxARPFrame)
 
 gha_t *pxARPLookupGHA(const gpa_t *pxGpaToLookup)
 {
-	BaseType_t x;
+	num_t x;
 	gha_t *pxGHA;
 
-	pxGHA = pvPortMalloc(sizeof(*pxGHA));
+	pxGHA = pvRsMemAlloc(sizeof(*pxGHA));
 
 	/*
 	ESP_LOGE(TAG_ARP, "ARP Cache searching");
@@ -732,21 +728,18 @@ gha_t *pxARPLookupGHA(const gpa_t *pxGpaToLookup)
 
 eARPLookupResult_t eARPLookupGPA(const gpa_t *pxGpaToLookup)
 {
-	BaseType_t x;
+	num_t x;
 	eARPLookupResult_t eReturn = eARPCacheMiss;
 
 	/* Loop through each entry in the ARP cache. */
 	for (x = 0; x < ARP_CACHE_ENTRIES; x++)
 	{
-		/* Does this row in the ARP cache table hold an entry for the Protocol address
-		 * being queried? */
-
-		if (xARPCache[x].pxProtocolAddress->ucAddress == pxGpaToLookup->ucAddress)
-		{
+        if (xGPACmp(xARPCache[x].pxProtocolAddress, pxGpaToLookup))
+        {
 			// ESP_LOGI(TAG_ARP, "ARP FOund: %s", xARPCache[ x ].ProtocolAddress->address == gpaToLookup->address);
 
 			/* A matching valid entry was found. */
-			if (xARPCache[x].ucValid == (uint8_t)pdFALSE)
+			if (xARPCache[x].ucValid == (uint8_t)false)
 			{
 				/* This entry is waiting an ARP reply, so is not valid. */
 				eReturn = eCantSendPacket;
@@ -793,7 +786,7 @@ void vARPUpdateMACAddress(const uint8_t ucMACAddress[MAC_ADDRESS_LENGTH_BYTES], 
 {
 
 	(void)memcpy(pxPhyDev->ucBytes, ucMACAddress, (size_t)MAC_ADDRESS_LENGTH_BYTES);
-	ESP_LOGI(TAG_ARP, "MAC Address updated");
+	LOGI(TAG_ARP, "MAC Address updated");
 }
 
 /**
@@ -823,19 +816,18 @@ struct rinarpHandle_t *pxARPAdd(gpa_t *pxPa, gha_t *pxHa)
 {
 
 	struct rinarpHandle_t *pxHandle;
+	pxHandle = pvRsMemAlloc(sizeof(*pxHandle));
 
-	pxHandle = pvPortMalloc(sizeof(*pxHandle));
-
-	if (!xShimIsGPAOK(pxPa))
+	if (!xIsGPAOK(pxPa))
 	{
-		ESP_LOGI(TAG_SHIM, "GPA is not correct");
-		return pdFALSE;
+		LOGI(TAG_SHIM, "GPA is not correct");
+		return false;
 	}
 
-	if (!xShimIsGHAOK(pxHa))
+	if (!xIsGHAOK(pxHa))
 	{
-		ESP_LOGI(TAG_SHIM, "GHA is not correct");
-		return pdFALSE;
+		LOGI(TAG_SHIM, "GHA is not correct");
+		return false;
 	}
 
 	pxHandle->pxHa = pxHa;
@@ -845,40 +837,39 @@ struct rinarpHandle_t *pxARPAdd(gpa_t *pxPa, gha_t *pxHa)
 	return pxHandle;
 }
 
-BaseType_t xARPRemove(const gpa_t *pxPa, const gha_t *pxha)
+bool_t xARPRemove(const gpa_t *pxPa, const gha_t *pxha)
 {
-	if (!xShimIsGPAOK(pxPa->ucAddress))
+	if (!xIsGPAOK(pxPa))
 	{
-		ESP_LOGE(TAG_SHIM, "GPA is not correct");
-
-		return pdFALSE;
+		LOGE(TAG_SHIM, "GPA is not correct");
+		return false;
 	}
-	if (!xShimIsGHAOK(pxha))
-	{
-		ESP_LOGE(TAG_SHIM, "GHA is not correct");
 
-		return pdFALSE;
+	if (!xIsGHAOK(pxha))
+	{
+		LOGE(TAG_SHIM, "GHA is not correct");
+		return false;
 	}
 
 	if (eARPLookupGPA(pxPa) == eARPCacheMiss)
 	{
-		ESP_LOGE(TAG_ARP, "GPA is not registered");
-		ESP_LOGI(TAG_ARP, "GPA: %s", pxPa->ucAddress);
-		return pdFALSE;
+		LOGE(TAG_ARP, "GPA is not registered");
+		LOGI(TAG_ARP, "GPA: %s", pxPa->pucAddress);
+		return false;
 	}
 
 	vARPRemoveCacheEntry(pxPa, pxha);
 
-	return pdTRUE;
+	return true;
 }
 
-BaseType_t xARPResolveGPA(const gpa_t *pxTpa, const gpa_t *pxSpa, const gha_t *pxSha)
+bool_t xARPResolveGPA(const gpa_t *pxTpa, const gpa_t *pxSpa, const gha_t *pxSha)
 {
 
-	if (!xShimIsGPAOK(pxTpa) || !xShimIsGHAOK(pxSha) || !xShimIsGPAOK(pxSpa))
+	if (!xIsGPAOK(pxTpa) || !xIsGHAOK(pxSha) || !xIsGPAOK(pxSpa))
 	{
-		ESP_LOGE(TAG_ARP, "Parameters are not correct, won't resolve GPA");
-		return pdFALSE;
+		LOGE(TAG_ARP, "Parameters are not correct, won't resolve GPA");
+		return false;
 	}
 
 	return vARPSendRequest(pxTpa, pxSpa, pxSha);
@@ -889,7 +880,7 @@ void vARPInitCache(void)
 	const string_t pcAd = {"\0"};
 
 	gha_t *pxTmp = pxARPCreateGHAUnknown(MAC_ADDR_802_3);
-	gpa_t *pxProtocolAddress = pxShimCreateGPA((uint8_t *)pcAd, 5); //¿¿is it correct check????
+	gpa_t *pxProtocolAddress = pxCreateGPA((uint8_t *)pcAd, 5);
 
 	ARPCacheRow_t xNullCacheEntry;
 
@@ -904,48 +895,48 @@ void vARPInitCache(void)
 		xARPCache[i] = xNullCacheEntry;
 	}
 
-	ESP_LOGI(TAG_ARP, "ARP CACHE Initialized");
+	LOGI(TAG_ARP, "ARP CACHE Initialized");
 }
 
 void vARPPrintCache(void)
 {
-	BaseType_t x, xCount = 0;
+	num_t x, xCount = 0;
 
 	for (x = 0; x < ARP_CACHE_ENTRIES; x++)
 	{
 		if ((xARPCache[x].pxProtocolAddress->ucAddress != 0UL) && (xARPCache[x].ucValid != 0))
 		{
-			ESP_LOGI(TAG_ARP, "Arp Entry %i: %3d - %s - %02x:%02x:%02x:%02x:%02x:%02x\n",
-					 x,
-					 xARPCache[x].ucAge,
-					 xARPCache[x].pxProtocolAddress->ucAddress,
-					 xARPCache[x].pxMACAddress->xAddress.ucBytes[0],
-					 xARPCache[x].pxMACAddress->xAddress.ucBytes[1],
-					 xARPCache[x].pxMACAddress->xAddress.ucBytes[2],
-					 xARPCache[x].pxMACAddress->xAddress.ucBytes[3],
-					 xARPCache[x].pxMACAddress->xAddress.ucBytes[4],
-					 xARPCache[x].pxMACAddress->xAddress.ucBytes[5]);
+			LOGI(TAG_ARP, "Arp Entry %i: %3d - %s - %02x:%02x:%02x:%02x:%02x:%02x\n",
+                 x,
+                 xARPCache[x].ucAge,
+                 xARPCache[x].pxProtocolAddress->pucAddress,
+                 xARPCache[x].pxMACAddress->xAddress.ucBytes[0],
+                 xARPCache[x].pxMACAddress->xAddress.ucBytes[1],
+                 xARPCache[x].pxMACAddress->xAddress.ucBytes[2],
+                 xARPCache[x].pxMACAddress->xAddress.ucBytes[3],
+                 xARPCache[x].pxMACAddress->xAddress.ucBytes[4],
+                 xARPCache[x].pxMACAddress->xAddress.ucBytes[5]);
 		}
 		xCount++;
 	}
-	ESP_LOGI(TAG_ARP, "Arp has %d entries\n", xCount);
+	LOGI(TAG_ARP, "Arp has %d entries\n", xCount);
 }
 
 void vARPPrintMACAddress(const gha_t *pxGha)
 {
 
-	ESP_LOGI(TAG_ARP, "MACAddress: %02x:%02x:%02x:%02x:%02x:%02x\n", pxGha->xAddress.ucBytes[0],
-			 pxGha->xAddress.ucBytes[1],
-			 pxGha->xAddress.ucBytes[2],
-			 pxGha->xAddress.ucBytes[3],
-			 pxGha->xAddress.ucBytes[4],
-			 pxGha->xAddress.ucBytes[5]);
+	LOGI(TAG_ARP, "MACAddress: %02x:%02x:%02x:%02x:%02x:%02x\n", pxGha->xAddress.ucBytes[0],
+         pxGha->xAddress.ucBytes[1],
+         pxGha->xAddress.ucBytes[2],
+         pxGha->xAddress.ucBytes[3],
+         pxGha->xAddress.ucBytes[4],
+         pxGha->xAddress.ucBytes[5]);
 }
 
 void vARPAddCacheEntry(struct rinarpHandle_t *pxHandle, uint8_t ucAge)
 {
 	ARPCacheRow_t xCacheEntry;
-	BaseType_t x = 0;
+	num_t x = 0;
 
 	/*xCacheEntry.pxProtocolAddress = pxHandle->pxPa;
 	xCacheEntry.pxMACAddress = pxHandle->pxHa;
@@ -957,12 +948,12 @@ void vARPAddCacheEntry(struct rinarpHandle_t *pxHandle, uint8_t ucAge)
 	{
 		if (xARPCache[x].ucValid == 0)
 		{
-			xARPCache[x].pxProtocolAddress = pxShimCreateGPA(pxHandle->pxPa->ucAddress,
-															 pxHandle->pxPa->uxLength);
+			xARPCache[x].pxProtocolAddress = pxCreateGPA(pxHandle->pxPa->pucAddress,
+													pxHandle->pxPa->uxLength);
 			xARPCache[x].pxMACAddress = pxHandle->pxHa;
 			xARPCache[x].ucAge = ucAge;
 			xARPCache[x].ucValid = 1;
-			ESP_LOGD(TAG_ARP, "ARP Entry successful");
+			LOGD(TAG_ARP, "ARP Entry successful");
 
 			break;
 		}

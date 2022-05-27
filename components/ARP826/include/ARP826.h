@@ -5,37 +5,19 @@
  *      Author: i2CAT
  */
 
-#include "portability/port.h"
-#include "buffer.h"
-#include "mac.h"
-
 #ifndef ARP_H_INCLUDED
 #define ARP_H_INCLUDED
+
+#include "portability/port.h"
+#include "buffer.h"
+#include "rina_name.h"
+#include "rina_gpha.h"
 
 /*-----------------------------------------------------------*/
 /* Miscellaneous structure and definitions. */
 /*-----------------------------------------------------------*/
 
-//enum MAC Address
-typedef enum {
-        MAC_ADDR_802_3
-} eGHAType_t;
-
-// Structure Generic Protocol Address
-typedef struct xGENERIC_PROTOCOL_ADDRESS
-{
-	uint8_t *ucAddress;
-	size_t uxLength;
-} gpa_t;
-
-// Structure Generic Hardware Address
-typedef struct xGENERIC_HARDWARE_ADDRESS
-{
-	eGHAType_t xType;
-	MACAddress_t xAddress;
-} gha_t;
-
-// Structure Ethernet Header
+//Structure Ethernet Header
 typedef struct __attribute__((packed))
 {
 	MACAddress_t xDestinationAddress; /**< Destination address  0 + 6 = 6  */
@@ -126,7 +108,7 @@ void vARPUpdateMACAddress(const uint8_t ucMACAddress[MAC_ADDRESS_LENGTH_BYTES], 
 void RINA_vARPMapping(uint32_t ulIPCPAddress);
 
 // Adds a mapping of application name to MAC address in the ARP cache.
-int vARPSendRequest(gpa_t *tpa, gpa_t *spa, gha_t *sha);
+bool_t vARPSendRequest( gpa_t * tpa, gpa_t * spa, gha_t * sha );
 
 // Remove all ARP entry in the ARP cache.
 void vARPRemoveAll(void);

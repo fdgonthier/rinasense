@@ -1,7 +1,9 @@
 #ifndef _PORTABILITY_RS_LOG_H
 #define _PORTABILITY_RS_LOG_H
 
+#ifndef LOG_LOCAL_LEVEL
 #define LOG_LOCAL_LEVEL  5 //CONFIG_LOG_MAXIMUM_LEVEL
+#endif
 
 #define LOG_COLOR_BLACK   "30"
 #define LOG_COLOR_RED     "31"

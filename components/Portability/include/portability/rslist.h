@@ -1,5 +1,5 @@
-#ifndef _RS_LIST_H_
-#define _RS_LIST_H
+#ifndef _PORTABILITY_RS_LIST_H_
+#define _PORTABILITY_RS_LIST_H
 
 #include <stdint.h>
 #include "port.h"
@@ -22,5 +22,5 @@ bool vRsListIsContainedWithin( RsList_t * const, RsListItem_t * const );
 
 void vRsListSetListItemOwner( RsListItem_t * const, void * );
 
-#endif // _RS_LIST_H
+#endif // _PORTABILITY_RS_LIST_H
 

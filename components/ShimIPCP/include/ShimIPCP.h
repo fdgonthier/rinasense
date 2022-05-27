@@ -117,35 +117,11 @@ void vShimWrite(void);
  * */
 void vShimRead(void);
 
-gpa_t *pxShimNameToGPA(const name_t *xLocalInfo);
 
-string_t *xShimGPAAddressToString(const gpa_t *pxGpa);
+//gpa_t * pxNameToGPA (const name_t * AplicationInfo );
 
-/* @brief Create a generic protocol address based on an string address*/
-gpa_t *pxShimCreateGPA(const uint8_t *pucAddress, size_t xLength);
-
-/* @brief Create a generic hardware address based on the MAC address*/
-gha_t *pxShimCreateGHA(eGHAType_t xType, const MACAddress_t *pxAddress);
-
-// gpa_t * pxNameToGPA (const name_t * AplicationInfo );
-
-void vNameDestroy(name_t *ptr);
-void vNameFini(name_t *n);
-
-/* @brief Create a generic hardware address based on the MAC address*/
-gha_t *pxShimCreateGHA(eGHAType_t xType, const MACAddress_t *pxAddress);
-
-/* @brief Check if a generic protocol Address was created correctly*/
-BaseType_t xShimIsGPAOK(const gpa_t *pxGpa);
-
-/* @brief Check if a generic hardware Address was created correctly*/
-BaseType_t xShimIsGHAOK(const gha_t *pxGha);
-
-/* @brief Destroy a generic protocol Address to clean up*/
-void vShimGPADestroy(gpa_t *pxGpa);
-
-/* @brief Destroy a generic hardware Address to clean up*/
-void vShimGHADestroy(gha_t *pxGha);
+void vNameDestroy(name_t * ptr );
+void vNameFini ( name_t * n );
 
 void vShimWiFiInit(ipcpInstance_t *pxShimWiFiInstance);
 
