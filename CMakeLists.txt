@@ -54,6 +54,8 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
   set(mock_IPCP_INCLUDES        "${CMAKE_CURRENT_SOURCE_DIR}/components/Mocks/IPCP/include")
   set(mock_NetworkInterface_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/components/Mocks/NetworkInterface/include")
 
+  set(NetworkInterface_MQ_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/components/NetworkInterface/mq/include")
+
   ##
   ## FreeRTOS
   ##
@@ -295,23 +297,28 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
   #
   # Component: NetworkInterface
   #
+  set(NetworkInterface_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/NetworkInterface")
   file(GLOB NetworkInterface_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/components/NetworkInterface/*.c"
+    "${NetworkInterface_DIR}/mq/*.c"
   )
   add_library(NetworkInterface STATIC ${NetworkInterface_SOURCES})
   target_include_directories(NetworkInterface PUBLIC
+    ${Common_INCLUDES}
     ${configRINA_INCLUDES}
     ${BufferManagement_INCLUDES}
     ${NetworkInterface_INCLUDES}
+    ${NetworkInterface_MQ_INCLUDES}
     ${FREERTOS_INCLUDES}
     ${ARP826_INCLUDES}
+    ${mock_IPCP_INCLUDES}
     ${IPCP_INCLUDES}
     ${configSensor_INCLUDES}
     ${Rmt_INCLUDES}
     ${ShimIPCP_INCLUDES}
     ${EFCP_INCLUDES}
+    ${Portability_INCLUDES}
   )
-  set_target_properties(NetworkInterface PROPERTIES EXCLUDE_FROM_ALL TRUE)
+  include("${NetworkInterface_DIR}/tests/CMakeLists.txt")
 
   #
   # Component: Ribd

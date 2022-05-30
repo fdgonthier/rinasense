@@ -28,4 +28,7 @@ void vMockClearLastSentEvent();
 
 void vMockSetIsCallingFromIPCPTask(bool_t v);
 
+bool_t xMockIPCPInit();
+void vMockIPCPClean();
+
 #endif // _mock_IPCP_IPCP_H

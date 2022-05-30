@@ -93,8 +93,13 @@ void testARPSendRequest() {
 
 int main() {
     vARPInitCache();
+    RsAssert(xMockIPCPInit());
     RsAssert(xNetworkBuffersInitialise());
 
     testARPCache();
     testARPSendRequest();
+
+    vMockIPCPClean();
+
+    return 0;
 }
