@@ -1,3 +1,81 @@
+Linux
+====
+
+The Linux build CMake as the ESP IDF development environment does but
+its CMakeFiles.txt are designed to be entirely independent of the IDF
+build. To use the Linux build, your source tree needs to be set to the
+'linux' branch.
+
+## 1. Create a 'build' directory in the project root and *cd* into it
+
+This is the basic first step of most CMake based projects.
+
+## 2. Launch CMake to configure the build directory
+
+The simplest way to configure the build directory is with CMake is the following:
+
+> cmake ../CMakeLists.txt -DTARGET_TYPE=linux_glib
+
+The TARGET_TYPE variables triggers CMake to configure the Linux
+build. Missing that variable, the build will be configured for the
+ESP-IDF.
+
+The output on my system is the following:
+
+```
+-- The C compiler identification is GNU 11.3.0
+-- The CXX compiler identification is GNU 11.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+Configuring: POSIX build
+-- Found PkgConfig: /usr/bin/pkg-config (found version "0.29.2") 
+-- Checking for module 'glib-2.0'
+--   Found glib-2.0, version 2.72.1
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/neumann/W/Tria/rinasense/build
+```
+
+The only dependency required for the build, beside the obvious (ie:
+gcc & co), is `libglib2.0-dev` on Debian.
+
+## 3. Build
+
+The CMakeLists.txt is pretty extensive but for now only the set of
+test targets that actually build and run completely will build. Just
+run `make` from the **build** directory.
+
+## 4. Test
+
+There are several test programs generated as part of the build. The
+can be run altogether with `make test`
+
+```
+Running tests...
+/usr/bin/ctest --force-new-ctest-process
+Test project /home/neumann/W/Tria/rinasense/build
+    Start 1: test_rina_name
+1/4 Test #1: test_rina_name ...................   Passed    0.00 sec
+    Start 2: test_rina_gpha
+2/4 Test #2: test_rina_gpha ...................   Passed    0.00 sec
+    Start 3: test_buffer_management
+3/4 Test #3: test_buffer_management ...........   Passed    0.00 sec
+    Start 4: test_arp826
+4/4 Test #4: test_arp826 ......................   Passed    0.00 sec
+```
+
+100% tests passed, 0 tests failed out of 4
+
+You can also run test program invidually in GDB or Valgrind.
+
 FreeRTOS RINA library for microcontroller platforms
 ====
 
