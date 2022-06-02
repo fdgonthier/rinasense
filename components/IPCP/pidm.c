@@ -10,32 +10,13 @@
 #include "configSensor.h"
 #include "pidm.h"
 #include "rina_ids.h"
+#include "bit_array.h"
 
 #include "portability/port.h"
 
 #define BITS_PER_BYTE (8)
 #define MAX_PORT_ID (((2 << BITS_PER_BYTE) * sizeof(portId_t)) - 1)
 
-static inline void reserve_port(pidm_t *pxInstance, portId_t port)
-{
-        uint8_t bit = port % (sizeof(portId_t) * BITS_PER_BYTE);
-        uint8_t idx = (port - bit) / 32;
-        pxInstance->ports[idx] |= (1 << bit);
-}
-
-static inline void release_port(pidm_t *pxInstance, portId_t port)
-{
-        uint8_t bit = port % (sizeof(portId_t) * BITS_PER_BYTE);
-        uint8_t idx = (port - bit) / 32;
-        pxInstance->ports[idx] = pxInstance->ports[idx] & ~(1 << bit);
-}
-
-static inline bool_t is_reserved(pidm_t *pxInstance, portId_t port)
-{
-        uint8_t bit = port % (sizeof(portId_t) * BITS_PER_BYTE);
-        uint8_t idx = (port - bit) / 32;
-        return (pxInstance->ports[idx] & (1 << bit)) > 0;
-}
 
 /** @brief pxPidmCreate.
  *
@@ -51,7 +32,8 @@ pidm_t *pxPidmCreate(void)
                 return NULL;
 
         //Initializing the list of Allocated Ports
-        memset(&pxPidmInstance->ports, 0, sizeof(pxPidmInstance->ports));
+        //memset(&pxPidmInstance->ports, 0, sizeof(pxPidmInstance->ports));
+        pxPidmInstance->pBitArray = bitarray_alloc(MAX_PORT_ID);
         pxPidmInstance->xLastAllocated = 0;
 
         return pxPidmInstance;
@@ -71,6 +53,7 @@ bool_t xPidmDestroy(pidm_t *pxInstance)
                 return false;
         }
 
+        bitarray_free(pxInstance->pBitArray);
         vRsMemFree(pxInstance);
 
         return true;
@@ -81,7 +64,7 @@ bool_t xPidmDestroy(pidm_t *pxInstance)
  * Check if a PortId was allocated or assigned */
 bool_t xPidmAllocated(pidm_t *pxInstance, portId_t xPortId)
 {
-        return is_reserved(pxInstance, xPortId);
+        return bitarray_get_bit(pxInstance->pBitArray, xPortId);
 }
 
 /** @brief xPidmAllocate
@@ -115,8 +98,8 @@ portId_t xPidmAllocate(pidm_t *pxInstance)
                 if (p == MAX_PORT_ID)
                         p = 1;
 
-                if (!is_reserved(pxInstance, p)) {
-                        reserve_port(pxInstance, p);
+                if (!bitarray_get_bit(pxInstance->pBitArray, p)) {
+                        bitarray_set_bit(pxInstance->pBitArray, p);
                         pxInstance->xLastAllocated = p;
                         break;
                 }
@@ -144,12 +127,12 @@ bool_t xPidmRelease(pidm_t *pxInstance, portId_t xPortId)
                 return false;
         }
 
-        if (!is_reserved(pxInstance, xPortId)) {
+        if (!bitarray_get_bit(pxInstance->pBitArray, xPortId)) {
                 LOGE(TAG_IPCPMANAGER, "Didn't find port ID %d, returning error", xPortId);
                 return false;
         }
         else {
-                release_port(pxInstance, xPortId);
+                bitarray_clear_bit(pxInstance->pBitArray, xPortId);
                 LOGI(TAG_IPCPMANAGER, "Port ID release completed successfully (port ID: %d)", xPortId);
                 return true;
         }

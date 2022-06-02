@@ -11,13 +11,13 @@
 
 #include "portability/port.h"
 #include "rina_ids.h"
+#include "bit_array.h"
 
 typedef struct xPIDM {
     /* The last Allocated Port*/
 	portId_t xLastAllocated;
 
-    /* Big bit array of 2048 ports. */
-    uint32_t ports[64];
+    bitarray_t *pBitArray;
 
 } pidm_t;
 
