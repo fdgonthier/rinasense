@@ -15,31 +15,6 @@
 
 #include "portability/port.h"
 
-#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
-#define container_of(ptr, type, member) ({         \
-    const typeof( ((type *)0)->member ) *__mptr = (ptr); \
-    (type *)( (char *)__mptr - offsetof(type,member) ); })
-
-#define PORT_ID_WRONG -1
-#define CEP_ID_WRONG -1
-#define ADDRESS_WRONG -1
-#define QOS_ID_WRONG -1
-
-typedef int32_t portId_t;
-
-typedef uint32_t seqNum_t;
-
-/* CEPIdLength field 1 Byte*/
-typedef uint8_t cepId_t;
-
-/* QoSIdLength field 1 Byte*/
-typedef uint8_t qosId_t;
-
-/* QoSIdLength field 1 Byte*/
-typedef uint8_t address_t;
-
-typedef uint16_t ipcProcessId_t;
-
 typedef unsigned int  uint_t;
 typedef unsigned int  timeout_t;
 /* SeqNumLength field 4 Byte*/

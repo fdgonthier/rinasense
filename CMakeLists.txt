@@ -124,9 +124,14 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
   set_target_properties(configRINA PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
   #
-  # Portability layer
+  # Portability layer, target specific
   #
   include("${CMAKE_CURRENT_SOURCE_DIR}/components/Portability/${TARGET_TYPE}/CMakeLists.txt")
+
+  #
+  # Portability layer tests
+  #
+  include("${CMAKE_CURRENT_SOURCE_DIR}/components/Portability/tests/CMakeLists.txt")
 
   #
   # Mock objects
@@ -198,26 +203,19 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
   #
   # Component: IPCP
   #
-  file(GLOB IPCP_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/components/IPCP/*.c"
-  )
+  # NOTE: WE ONLY PARTIALLY COMPILE THE PIDM FILES FOR THE MOMENT!
+  set(IPCP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/IPCP")
+  set(IPCP_TEST_DIR "${IPCP_DIR}/tests")
+  file(GLOB IPCP_SOURCES "${IPCP_DIR}/pidm.c")
   add_library(IPCP STATIC ${IPCP_SOURCES})
   target_include_directories(IPCP PUBLIC
     ${configSensor_INCLUDES}
     ${configRINA_INCLUDES}
     ${IPCP_INCLUDES}
-    ${FREERTOS_INCLUDES}
-    ${ARP826_INCLUDES}
-    ${Rmt_INCLUDES}
-    ${BufferManagement_INCLUDES}
-    ${ShimIPCP_INCLUDES}
-    ${EFCP_INCLUDES}
-    ${Ribd_INCLUDES}
-    ${RINA_API_INCLUDES}
-    ${NetworkInterface_INCLUDES}
-    ${Enrollment_INCLUDES}
+    ${Portability_INCLUDES}
+    ${Common_INCLUDES}
   )
-  set_target_properties(IPCP PROPERTIES EXCLUDE_FROM_ALL TRUE)
+  include("${IPCP_TEST_DIR}/CMakeLists.txt")
 
   #
   # Component: ARP826
@@ -229,7 +227,6 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
   target_include_directories(ARP826 PUBLIC
     ${mock_IPCP_INCLUDES}
     ${mock_NetworkInterface_INCLUDES}
-
     ${configSensor_INCLUDES}
     ${Common_INCLUDES}
     ${BufferManagement_INCLUDES}

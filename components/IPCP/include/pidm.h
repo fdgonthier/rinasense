@@ -9,28 +9,36 @@
 #ifndef PIDM_H__INCLUDED
 #define PIDM_H__INCLUDED
 
-typedef struct xPIDM
-{
-        /*List of Allocated Ports*/
-        List_t xAllocatedPorts;
+#include "portability/port.h"
+#include "rina_ids.h"
 
-        /*The last Allocated Port*/
-        portId_t xLastAllocated;
+typedef struct xPIDM {
+    /* The last Allocated Port*/
+	portId_t xLastAllocated;
+
+    /* Big bit array of 2048 ports. */
+    uint32_t ports[64];
 
 } pidm_t;
 
-typedef struct xALLOC_PID
-{
-        /*List Item to register the Pid into the xAllocatedPorts List*/
-        ListItem_t xPortIdItem;
+typedef struct xALLOC_PID {
+    /*List Item to register the Pid into the xAllocatedPorts List*/
+    RsListItem_t xPortIdItem;
 
-        /*Port Id allocated*/
-        portId_t xPid;
+    /*Port Id allocated*/
+    portId_t xPid;
 
 } allocPid_t;
 
-pidm_t *pxPidmCreate(void);
+
+pidm_t * pxPidmCreate(void);
+
+bool_t xPidmDestroy(pidm_t *pxInstance);
 
 portId_t xPidmAllocate(pidm_t *pxInstance);
+
+bool_t xPidmRelease(pidm_t *pxInstance, portId_t id);
+
+bool_t xPidmAllocated(pidm_t *pxInstance, portId_t xPortId);
 
 #endif

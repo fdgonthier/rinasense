@@ -14,6 +14,7 @@ if(NOT ${TARGET_TYPE} STREQUAL "idf")
   target_link_libraries(portability PkgConfig::deps)
   target_include_directories(portability PUBLIC
     ${Portability_INCLUDES}
+    ${Common_INCLUDES}
     ${CMAKE_CURRENT_BINARY_DIR}
   )
 endif()

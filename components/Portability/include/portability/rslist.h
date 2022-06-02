@@ -22,5 +22,13 @@ bool vRsListIsContainedWithin( RsList_t * const, RsListItem_t * const );
 
 void vRsListSetListItemOwner( RsListItem_t * const, void * );
 
+void *pRsListGetListItemOwner(RsListItem_t * const);
+
+RsListItem_t* pRsListGetHeadEntry(RsList_t * const);
+
+RsListItem_t* pRsListGetEndMarker(RsList_t * const);
+
+RsListItem_t* pRsListGetNext(RsListItem_t * const);
+
 #endif // _PORTABILITY_RS_LIST_H
 
