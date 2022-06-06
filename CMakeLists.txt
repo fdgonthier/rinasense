@@ -2,12 +2,6 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.5)
 
-set(FREERTOS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../FreeRTOS/FreeRTOS"
-  CACHE PATH "Directory of FreeRTOS sources")
-set(FREERTOS_PLUS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../FreeRTOS/FreeRTOS-Plus"
-  CACHE PATH "Directory of FreeRTOS-Plus sources")
-set(FREERTOS_POSIX_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../FreeRTOS-Plus-POSIX"
-  CACHE PATH "Directory of FreeRTOS-Plus/POSIX sources")
 set(TARGET_TYPE "freertos_idf"
   CACHE STRING "Type of build: 'linux_glibc', 'freertos_idf'")
 
@@ -54,63 +48,6 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
   set(mock_NetworkInterface_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/components/Mocks/NetworkInterface/include")
 
   set(NetworkInterface_MQ_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/components/NetworkInterface/mq/include")
-
-  ##
-  ## FreeRTOS
-  ##
-  set(FREERTOS_INCLUDES
-    ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR}/freertos
-    ${FREERTOS_DIR}/Source/include
-    ${FREERTOS_DIR}/Source/portable/ThirdParty/GCC/Posix
-    ${FREERTOS_DIR}/Source/portable/ThirdParty/GCC/Posix/utils
-    #${FREERTOS_DIR}/Demo/Common/include
-    #${FREERTOS_DIR}/Demo/Posix_GCC
-  )
-  set(FREERTOS_POSIX_INCLUDES
-    ${FREERTOS_POSIX_DIR}/FreeRTOS-Plus-POSIX/include
-    ${FREERTOS_POSIX_DIR}/FreeRTOS-Plus-POSIX/include/portable
-    ${FREERTOS_POSIX_DIR}/FreeRTOS-Plus-POSIX/include/portable/pc/windows
-    ${FREERTOS_DIR}/Source/portable/ThirdParty/GCC/Posix
-    ${FREERTOS_DIR}/Source/portable/ThirdParty/GCC/Posix/utils
-    ${FREERTOS_POSIX_DIR}/include
-    ${FREERTOS_POSIX_DIR}/include/private
-  )
-  set(FREERTOS_TRACE_INCLUDES
-    ${FREERTOS_PLUS_DIR}/Source/FreeRTOS-Plus-Trace/Include
-  )
-
-  # FreeRTOS + Trace
-  file(GLOB FREERTOS_TRACE_SOURCES
-    ${FREERTOS_PLUS_DIR}/Source/FreeRTOS-Plus-Trace/*.c
-  )
-  # FreeRTOS + POSIX
-  file(GLOB FREERTOS_POSIX_SOURCES
-    ${FREERTOS_POSIX_DIR}/FreeRTOS-Plus-POSIX/source/*.c
-  )
-  # FreeRTOS
-  file(GLOB FREERTOS_SOURCES
-    ${FREERTOS_DIR}/Source/*.c
-    ${FREERTOS_DIR}/Source/portable/ThirdParty/GCC/Posix/*.c
-    ${FREERTOS_PLUS_DIR}/Source/*.c
-  )
-
-  # Link together
-  add_library(freertos STATIC
-    ${FREERTOS_SOURCES}
-    ${FREERTOS_POSIX_SOURCES}
-    ${FREERTOS_TRACE_SOURCES}
-  )
-  target_include_directories(freertos PUBLIC
-    ${FREERTOS_INCLUDES}
-    ${FREERTOS_POSIX_INCLUDES}
-    ${FREERTOS_TRACE_INCLUDES}
-  )
-  set_target_properties(freertos PROPERTIES EXCLUDE_FROM_ALL TRUE)
-
-  # Create a link to the 'freertos' include directory so that #include
-  # statement such as #include "freertos/FreeRTOS.h" work.
-  file(CREATE_LINK ${FREERTOS_DIR}/Source/include ${CMAKE_CURRENT_BINARY_DIR}/freertos SYMBOLIC)
 
   #
   # Component: configRINA
