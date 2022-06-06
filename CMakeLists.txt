@@ -119,9 +119,6 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
     #    ${NetworkInterface_INCLUDES}
     #    ${Rmt_INCLUDES}
     #    ${ShimIPCP_INCLUDES}
-    ${FREERTOS_INCLUDES}
-    ${FREERTOS_POSIX_INCLUDES}
-    ${FREERTOS_TRACE_INCLUDES}
     ${Portability_INCLUDES}
   )
   include("${BufferManagement_TEST_DIR}/CMakeLists.txt")
@@ -185,7 +182,6 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
   target_include_directories(Rmt PUBLIC
     ${Rmt_INCLUDES}
     ${EFCP_INCLUDES}
-    ${FREERTOS_INCLUDES}
   )
   set_target_properties(Rmt PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
@@ -206,7 +202,6 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
     ${IPCP_INCLUDES}
     ${NetworkInterface_INCLUDES}
     ${Rmt_INCLUDES}
-    ${FREERTOS_INCLUDES}
   )
   set_target_properties(ShimIPCP PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
@@ -223,7 +218,6 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
     ${EFCP_INCLUDES}
     ${Rmt_INCLUDES}
     ${configSensor_INCLUDES}
-    ${FREERTOS_INCLUDES}
   )
   set_target_properties(EFCP PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
@@ -241,7 +235,6 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
     ${BufferManagement_INCLUDES}
     ${NetworkInterface_INCLUDES}
     ${NetworkInterface_MQ_INCLUDES}
-    ${FREERTOS_INCLUDES}
     ${ARP826_INCLUDES}
     ${mock_IPCP_INCLUDES}
     ${IPCP_INCLUDES}
@@ -273,7 +266,6 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
     ${RINA_API_INCLUDES}
     ${Rmt_INCLUDES}
     ${IPCP_INCLUDES}
-    ${FREERTOS_INCLUDES}
   )
   set_target_properties(Ribd PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
@@ -295,7 +287,6 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
     ${Ribd_INCLUDES}
     ${RINA_API_INCLUDES}
     ${Rmt_INCLUDES}
-    ${FREERTOS_INCLUDES}
   )
   set_target_properties(Enrollment PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
@@ -317,7 +308,6 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
     ${Ribd_INCLUDES}
     ${RINA_API_INCLUDES}
     ${Rmt_INCLUDES}
-    ${FREERTOS_INCLUDES}
   )
   set_target_properties(FlowAllocator PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
@@ -337,7 +327,6 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
     ${IPCP_INCLUDES}
     ${Rmt_INCLUDES}
     ${ShimIPCP_INCLUDES}
-    ${FREERTOS_INCLUDES}
   )
   set_target_properties(RINA_API PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
