@@ -14,7 +14,7 @@ This is the basic first step of most CMake based projects.
 
 The simplest way to configure the build directory is with CMake is the following:
 
-> cmake ../CMakeLists.txt -DTARGET_TYPE=linux_glib
+> cmake .. -DTARGET_TYPE=linux_glib
 
 The TARGET_TYPE variables triggers CMake to configure the Linux
 build. Missing that variable, the build will be configured for the
