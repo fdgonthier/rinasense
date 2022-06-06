@@ -6,5 +6,7 @@
 #include "glib_rsassert.h"
 #include "glib_rsnet.h"
 
+#include "posix_rsqueue.h"
+
 #endif // _PORT_LINUX_GLIB_PORT_H
 
