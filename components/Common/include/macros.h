@@ -1,4 +1,4 @@
-#ifndef ofssetof
+#ifndef offsetof
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 #endif
 
