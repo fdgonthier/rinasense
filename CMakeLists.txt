@@ -12,14 +12,14 @@ set(TARGET_TYPE "freertos_idf"
   CACHE STRING "Type of build: 'linux_glibc', 'freertos_idf'")
 
 if(${TARGET_TYPE} STREQUAL "freertos_idf")
-  message("Configuring: ESP-IDF build")
-
-  include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-
-  add_compile_definitions(configUSE_POSIX_ERRNO=1)
-
-  project(RINA_sensor)
-
+  if ($ENV{IDF_PATH} NOT STREQUAL "")
+    message("Configuring: ESP-IDF build")
+    include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+    add_compile_definitions(configUSE_POSIX_ERRNO=1)
+    project(RINA_sensor)
+  else()
+    message(FATAL_ERROR "The 'freertos_idf' target needs the IDF_PATH environment variable to be defined")
+  endif()
 elseif (${TARGET_TYPE} STREQUAL "linux_glib")
   project(RINA_sensor)
 
@@ -27,7 +27,6 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
 
   include(CTest)
 
-  set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
   set(CMAKE_VERBOSE_MAKEFILE ON)
   set(CMAKE_C_COMPILER "gcc")
 
