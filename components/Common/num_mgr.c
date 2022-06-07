@@ -9,13 +9,15 @@ num_mgr_t *numMgrCreate(size_t numCnt)
 {
     num_mgr_t *nm;
 
-    /* INT_MAX is our error code. */
-    if (numCnt == INT_MAX)
+    /* UINT_MAX is our error code. */
+    if (numCnt == UINT_MAX)
         return NULL;
 
     nm = pvRsMemAlloc(sizeof(num_mgr_t));
     if (!nm)
         return NULL;
+
+    memset(nm, 0, sizeof(num_mgr_t));
 
     if (!numMgrInit(nm, numCnt)) {
         vRsMemFree(nm);
@@ -39,11 +41,16 @@ bool_t numMgrInit(num_mgr_t *im, size_t numCnt)
 
 void numMgrFini(num_mgr_t *im)
 {
+    RsAssert(im != NULL);
+    RsAssert(im->ba != NULL);
+
     bitarray_free(im->ba);
 }
 
 void numMgrDestroy(num_mgr_t *im)
 {
+    RsAssert(im != NULL);
+
     vRsMemFree(im);
 }
 
@@ -59,9 +66,9 @@ uint32_t numMgrAllocate(num_mgr_t *im)
      * allocated port again, wrapping over MAX_PORT_ID. */
     for (;; p++) {
 
-        /* We return INT_MAX if we overflow. */
+        /* We return UINT_MAX if we overflow. */
         if (p == im->lastAllocated)
-            return INT_MAX;
+            return UINT_MAX;
 
         if (p == im->numCnt)
             p = 1;
@@ -78,6 +85,8 @@ uint32_t numMgrAllocate(num_mgr_t *im)
 
 bool_t numMgrRelease(num_mgr_t *im, uint32_t n)
 {
+    RsAssert(im != NULL);
+
     if (!bitarray_get_bit(im->ba, n))
         return false;
     else {
@@ -88,5 +97,7 @@ bool_t numMgrRelease(num_mgr_t *im, uint32_t n)
 
 bool_t numMgrIsAllocated(num_mgr_t *im, uint32_t n)
 {
+    RsAssert(im != NULL);
+
     return bitarray_get_bit(im->ba, n);
 }
