@@ -2,34 +2,25 @@
 #define IPCP_H_
 
 #include "configSensor.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/queue.h"
-
 #include "ARP826.h"
 #include "pci.h"
 #include "common.h"
 #include "rina_name.h"
-#include "ipcp_events.h"
+#include "IPCP_events.h"
 
 /*-----------------------------------------------------------*/
 /* Miscellaneous structure and definitions. */
 /*-----------------------------------------------------------*/
 
-#define IS_PORT_ID_OK(id) (id >= 0 ? pdTRUE : pdFALSE)
-
 typedef struct xQUEUE_FIFO
 {
-    QueueHandle_t xQueue;
-
+	RsQueue_t  xQueue;
 } rfifo_t;
 
 
 //typedef uint16_t ipcProcessId_t;
 
 typedef uint16_t ipcpInstanceId_t;
-
-typedef int32_t portId_t;
 
 /*
  * Contains all the information associated to an instance of a
@@ -41,38 +32,39 @@ struct ipcpInstanceData_t;
 struct du_t;
 
 /* Operations available in an IPCP*/
-struct ipcpInstanceOps_t
-{
-    BaseType_t (*flowAllocateRequest)(struct ipcpInstanceData_t *pxData,
-                                      name_t *pxSource,
-                                      name_t *pxDest,
-                                      // struct flowSpec_t *    		pxFlowSpec,
-                                      portId_t xId);
-    BaseType_t (*flowAllocateResponse)(struct ipcpInstanceData_t *pxData,
-                                       portId_t xPortId
-                                       /*int                         Result*/);
-    BaseType_t (*flowDeallocate)(struct ipcpInstanceData_t *pxData,
-                                 portId_t xId);
+struct ipcpInstanceOps_t {
+        bool_t  (* flowAllocateRequest)(struct ipcpInstanceData_t * 	pxData,
+                                     struct ipcpInstance_t *      	pxUsrIpcp,
+                                     name_t *         		pxSource,
+                                     name_t *         		pxDest,
+                                     //struct flowSpec_t *    		pxFlowSpec,
+                                     portId_t               xId);
+        bool_t  (* flowAllocateResponse)(struct ipcpInstanceData_t * pxData,
+                                        struct ipcpInstance_t *      pxUserIpcp,
+                                        portId_t                   xPortId
+                                        /*int                         Result*/);
+        bool_t  (* flowDeallocate)(struct ipcpInstanceData_t * 		pxData,
+                                 portId_t                   xId);
 
-    BaseType_t (*applicationRegister)(struct ipcpInstanceData_t *pxData,
-                                      name_t *pxSource,
-                                      name_t *pxDafName);
-    BaseType_t (*applicationUnregister)(struct ipcpInstanceData_t *pxData,
-                                        const name_t *pxSource);
+        bool_t  (* applicationRegister)(struct ipcpInstanceData_t *   pxData,
+                                            name_t *           pxSource,
+				                            name_t *           pxDafName);
+        bool_t  (* applicationUnregister)(struct ipcpInstanceData_t *   pxData,
+                						const name_t *       pxSource);
 
-    BaseType_t (*assignToDif)(struct ipcpInstanceData_t *pxData,
-                              const name_t *pxDifName,
-                              const string_t *type
-                              /*dif_config * config*/);
+        bool_t  (* assignToDif)(struct ipcpInstanceData_t * pxData,
+        		       const name_t * pxDifName,
+			       const string_t * type
+                               /*dif_config * config*/);
 
-    BaseType_t (*updateDifConfig)(struct ipcpInstanceData_t *data
-                                  /*const struct dif_config *   configuration*/);
+        bool_t  (* updateDifConfig)(struct ipcpInstanceData_t * data
+                                   /*const struct dif_config *   configuration*/);
 
-    /* Takes the ownership of the passed SDU */
-    BaseType_t (*duWrite)(struct ipcpInstanceData_t *pxData,
-                          portId_t xId,
-                          struct du_t *pxDu,
-                          BaseType_t uxBlocking);
+        /* Takes the ownership of the passed SDU */
+        bool_t  (* duWrite)(struct ipcpInstanceData_t * pxData,
+                          portId_t                   xId,
+                          struct du_t *                 pxDu,
+                          bool_t                       uxBlocking);
 
     cepId_t (*connectionCreate)(struct efcpContainer_t *pxEfcpc,
                                 // struct ipcpInstance_t *      pxUserIpcp,
@@ -83,18 +75,18 @@ struct ipcpInstanceOps_t
                                 dtpConfig_t *dtp_config,
                                 struct dtcpConfig_t *dtcp_config);
 
-    BaseType_t (*connectionUpdate)(struct ipcpInstanceData_t *pxData,
-                                   portId_t xPortId,
-                                   cepId_t xSrcId,
-                                   cepId_t xDstId);
+        bool_t      (* connectionUpdate)(struct ipcpInstanceData_t * pxData,
+                                       portId_t                   xPortId,
+                                       cepId_t                    xSrcId,
+                                       cepId_t                    xDstId);
 
-    BaseType_t (*connectionModify)(struct ipcpInstanceData_t *pxData,
-                                   cepId_t xSrcCepId,
-                                   address_t xSrcAddress,
-                                   address_t xDstAddress);
+        bool_t      (* connectionModify)(struct ipcpInstanceData_t * pxData,
+        			       cepId_t			   xSrcCepId,
+				       address_t		   xSrcAddress,
+				       address_t		   xDstAddress);
 
-    BaseType_t (*connectionDestroy)(struct ipcpInstanceData_t *pxData,
-                                    cepId_t xSrcId);
+        bool_t      (* connectionDestroy)(struct ipcpInstanceData_t * pxData,
+                                        cepId_t                    xSrcId);
 
     cepId_t (*connectionCreateArrived)(struct ipcpInstanceData_t *pxData,
                                        struct ipcpInstance_t *pxUserIpcp,
@@ -107,40 +99,40 @@ struct ipcpInstanceOps_t
                                        struct dtcp_config *        dtcp_config*/
     );
 
-    BaseType_t (*flowPrebind)(struct ipcpInstanceData_t *pxData,
-                              // struct ipcpInstance_t *   	pxUserIpcp,
-                              portId_t xPortId);
+        bool_t      (* flowPrebind)(struct ipcpInstanceData_t * pxData,
+                                  //struct ipcpInstance_t *   	pxUserIpcp,
+                                  portId_t                   xPortId);
 
-    BaseType_t (*flowBindingIpcp)(struct ipcpInstanceData_t *pxUserData,
-                                  portId_t xPortId,
-                                  struct ipcpInstance_t *xN1Ipcp);
+        bool_t      (* flowBindingIpcp)(struct ipcpInstanceData_t * pxUserData,
+                                       portId_t                   xPortId,
+                                       struct ipcpInstance_t *      pxN1Ipcp);
 
-    BaseType_t (*flowUnbindingIpcp)(struct ipcpInstanceData_t *pxUserData,
-                                    portId_t xPortId);
-    BaseType_t (*flowUnbindingUserIpcp)(struct ipcpInstanceData_t *pxUserData,
-                                        portId_t xPortId);
-    BaseType_t (*nm1FlowStateChange)(struct ipcpInstanceData_t *pxData,
-                                     portId_t xPortId, BaseType_t up);
+        bool_t      (* flowUnbindingIpcp)(struct ipcpInstanceData_t * pxUserData,
+                                         portId_t                   xPortId);
+        bool_t      (* flowUnbindingUserIpcp)(struct ipcpInstanceData_t * pxUserData,
+                                              portId_t                   xPortId);
+	bool_t	(* nm1FlowStateChange)(struct ipcpInstanceData_t * pxData,
+					  portId_t xPortId, bool_t up);
 
-    BaseType_t (*duEnqueue)(struct ipcpInstanceData_t *pxData,
-                            portId_t xId,
-                            struct du_t *pxDu);
+        bool_t      (* duEnqueue)(struct ipcpInstanceData_t * pxData,
+                                portId_t                   xId,
+                                struct du_t *                 pxDu);
 
-    /* Takes the ownership of the passed sdu */
-    BaseType_t (*mgmtDuWrite)(struct ipcpInstanceData_t *pxData,
-                              portId_t xPortId,
-                              struct du_t *pxDu);
+        /* Takes the ownership of the passed sdu */
+        bool_t (* mgmtDuWrite)(struct ipcpInstanceData_t * pxData,
+                              portId_t                   xPortId,
+                              struct du_t *                 pxDu);
 
-    /* Takes the ownership of the passed sdu */
-    BaseType_t (*mgmtDuPost)(struct ipcpInstanceData_t *pxData,
-                             portId_t xPortId,
-                             struct du_t *xDu);
+        /* Takes the ownership of the passed sdu */
+        bool_t (* mgmtDuPost)(struct ipcpInstanceData_t * pxData,
+                             portId_t                   xPortId,
+                             struct du_t *                xDu);
 
-    BaseType_t (*pffAdd)(struct ipcpInstanceData_t *pxData
-                         /*struct mod_pff_entry	  * pxEntry*/);
+        bool_t (* pffAdd)(struct ipcpInstanceData_t * pxData
+			/*struct mod_pff_entry	  * pxEntry*/);
 
-    BaseType_t (*pffRemove)(struct ipcpInstanceData_t *pxData
-                            /*struct mod_pff_entry	  * pxEntry*/);
+       bool_t (* pffRemove)(struct ipcpInstanceData_t * pxData
+    			/*struct mod_pff_entry	  * pxEntry*/);
 
     /*int (* pff_dump)(struct ipcp_instance_data * data,
                      struct list_head *          entries);
@@ -174,8 +166,8 @@ struct ipcpInstanceOps_t
                     struct sdup_crypto_state * state,
                         port_id_t 	   port_id);*/
 
-    BaseType_t (*enableWrite)(struct ipcpInstanceData_t *pxData, portId_t xId);
-    BaseType_t (*disableWrite)(struct ipcpInstanceData_t *pxData, portId_t xId);
+        bool_t (* enableWrite)(struct ipcpInstanceData_t * pxData, portId_t xId);
+        bool_t (* disableWrite)(struct ipcpInstanceData_t * pxData, portId_t xId);
 
     /*
      * Start using new address after first timeout, deprecate old
@@ -202,44 +194,12 @@ typedef enum TYPE_IPCP_INSTANCE
 } ipcpInstanceType_t;
 
 /*Structure of a IPCP instance. Could be type Normal or Shim*/
-typedef struct xIPCP_INSTANCE
-{
-    ipcpInstanceId_t xId;
-    ipcpInstanceType_t xType;
-    struct ipcpInstanceData_t *pxData;
-    struct ipcpInstanceOps_t *pxOps;
-    ListItem_t xInstanceItem;
+typedef struct  xIPCP_INSTANCE {
+		ipcpInstanceId_t         xId;
+        ipcpInstanceType_t		 xType;
+        struct ipcpInstanceData_t * 	 pxData;
+        struct ipcpInstanceOps_t *  	 pxOps;
+        RsListItem_t               xInstanceItem;
 } ipcpInstance_t;
-
-/**
- * The software timer struct for various IPCP functions
- */
-typedef struct xIPCP_TIMER
-{
-    uint32_t
-        bActive : 1,            /**< This timer is running and must be processed. */
-        bExpired : 1;           /**< Timer has expired and a task must be processed. */
-    TimeOut_t xTimeOut;         /**< The timeout value. */
-    TickType_t ulRemainingTime; /**< The amount of time remaining. */
-    TickType_t ulReloadTime;    /**< The value of reload time. */
-} IPCPTimer_t;
-
-/*
- * Send the event eEvent to the IPCP task event queue, using a block time of
- * zero.  Return pdPASS if the message was sent successfully, otherwise return
- * pdFALSE.
- */
-BaseType_t xSendEventToIPCPTask(eRINAEvent_t eEvent);
-
-/* Returns pdTRUE is this function is called from the IPCP-task */
-BaseType_t xIsCallingFromIPCPTask(void);
-
-BaseType_t xSendEventStructToIPCPTask(const RINAStackEvent_t *pxEvent,
-                                      TickType_t uxTimeout);
-
-eFrameProcessingResult_t eConsiderFrameForProcessing(const uint8_t *const pucEthernetBuffer);
-
-BaseType_t RINA_IPCPInit(void);
-struct rmt_t *pxIPCPGetRmt(void);
 
 #endif

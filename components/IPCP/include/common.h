@@ -9,10 +9,6 @@
 #define COMPONENTS_IPCP_INCLUDE_COMMON_H_
 
 #include "configSensor.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/queue.h"
-
 #include "portability/port.h"
 
 typedef unsigned int  uint_t;
@@ -61,10 +57,10 @@ struct flowSpec_t
         uint32_t ulMaxSduSize;
 
         /* Indicates if SDUs have to be delivered in order */
-        BaseType_t xOrderedDelivery;
+        bool_t   	xOrderedDelivery;
 
         /* Indicates if partial delivery of SDUs is allowed or not */
-        BaseType_t xPartialDelivery;
+        bool_t   	xPartialDelivery;
 
         /* In milliseconds */
         uint32_t ulPeakBandwidthDuration;
@@ -76,7 +72,7 @@ struct flowSpec_t
         uint32_t ulUndetectedBitErrorRate;
 
         /* Preserve message boundaries */
-        BaseType_t xMsgBoundaries;
+        bool_t 		xMsgBoundaries;
 };
 
 typedef struct xPOLICY {
@@ -87,8 +83,8 @@ typedef struct xPOLICY {
         string_t pcPolicyVersion;
 
         /* The paramters of the policy */
-        List_t xParameters;
-} policy_t;
+        RsList_t          xParameters;
+}policy_t;
 
 typedef struct xCONNECTION_ID
 {
@@ -148,7 +144,7 @@ typedef struct xDT_CONS
          * encryption algorithm must be used for every PDU; we cannot identify
          * which flow owns a particular PDU until it has been decrypted.
          */
-        bool dif_integrity;
+        bool_t dif_integrity;
 
         uint32_t seq_rollover_thres;
         bool dif_concat;
@@ -171,8 +167,8 @@ typedef struct xEFCP_CONFIG
         /* Policy to implement. FUTURE IMPLEMENTATION*/
         policy_t *pxUnknownFlow;
 
-        /* List of qos_cubes supported by the EFCP config */
-        List_t xQosCubesList;
+	/* List of qos_cubes supported by the EFCP config */
+	RsList_t          xQosCubesList;
 
 } efcpConfig_t;
 
@@ -189,7 +185,7 @@ typedef struct xRMT_CONFIG
 typedef struct xDIF_CONFIG
 {
         /* List of configuration entries */
-        List_t xIpcpConfigEntries;
+        RsList_t          xIpcpConfigEntries;
 
         /* the config of the efcp */
         efcpConfig_t *pxEfcpConfig;
@@ -211,16 +207,16 @@ typedef struct xDIF_CONFIG
 typedef struct xDTP_CONFIG
 {
         /* It is DTCP used in this config: default-pdFALSE */
-        BaseType_t xDtcpPresent;
+        bool_t           xDtcpPresent;
 
         /* Sequence number rollover threshold */
         int seqNumRoTh;
 
-        timeout_t xInitialATimer;
-        BaseType_t xPartialDelivery;
-        BaseType_t xIncompleteDelivery;
-        BaseType_t xInOrderDelivery;
-        seqNum_t xMaxSduGap;
+        timeout_t            xInitialATimer;
+        bool_t           xPartialDelivery;
+        bool_t           xIncompleteDelivery;
+        bool_t           xInOrderDelivery;
+        seqNum_t             xMaxSduGap;
 
         /* Describes a policy */
         policy_t *pxDtpPolicySet;
@@ -273,30 +269,7 @@ typedef struct xAUTH_POLICY
         string_t pcVersion;
         uint8_t ucAbsSyntax;
 
-} authPolicy_t;
-
-/* ALWAYS use this function to check if the id looks good */
-BaseType_t is_port_id_ok(portId_t id);
-
-/* ALWAYS use this function to get a bad id */
-portId_t port_id_bad(void);
-
-/* ALWAYS use this function to check if the id looks good */
-BaseType_t is_cep_id_ok(cepId_t id);
-
-/* ALWAYS use this function to get a bad id */
-cepId_t cep_id_bad(void);
-
-BaseType_t is_address_ok(address_t address);
-
-address_t address_bad(void);
-
-/* ALWAYS use this function to check if the id looks good */
-BaseType_t is_qos_id_ok(qosId_t id);
-
-BaseType_t is_ipcp_id_ok(ipcProcessId_t id);
-
-// name_t *xRinaNameCreate(void);
+}authPolicy_t;
 
 void memcheck(void);
 

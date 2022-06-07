@@ -1,6 +1,6 @@
 #include "portability/port.h"
 #include "portability/posix/semaphore.h"
-#include "ipcp_events.h"
+#include "IPCP_events.h"
 
 static RINAStackEvent_t sentEvent = { 0 };
 static bool_t isCallingFromIPCPTask = false;

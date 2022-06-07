@@ -2,7 +2,7 @@
 
 #include "portability/port.h"
 #include "portability/posix/mqueue.h"
-#include "glib_rsqueue.h"
+#include "posix_rsqueue.h"
 
 RsQueue_t *pxRsQueueCreate(const char *sQueueName,
                           size_t uxQueueLength, size_t uxItemSize)

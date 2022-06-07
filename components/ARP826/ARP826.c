@@ -12,7 +12,7 @@
 //#include "ShimIPCP.h"
 #include "configSensor.h"
 //#include "common.h"
-#include "ipcp_events.h"
+#include "IPCP_events.h"
 
 #include "portability/port.h"
 #include "rina_name.h"
@@ -318,7 +318,6 @@ bool_t vARPSendRequest(gpa_t *pxTpa, gpa_t *pxSpa, gha_t *pxSha)
     struct timespec ts;
 
 	xMaxLen = MAX(pxSpa->uxLength, pxTpa->uxLength);
-    vSetMaxTimespec(&ts);
 
 	if (!xARPAddressGPAGrow(pxSpa, xMaxLen, 0x00))
 	{
@@ -336,6 +335,9 @@ bool_t vARPSendRequest(gpa_t *pxTpa, gpa_t *pxSpa, gha_t *pxSha)
 
 	/* This is called from the context of the IPCP event task, so a block time
 	 * must not be used. */
+
+    if (!rstime_waitmsec(&ts, 1))
+        return false;
 
 	pxNetworkBuffer = pxGetNetworkBufferWithDescriptor(xBufferSize, &ts); // sizeof length ARPPacket
 

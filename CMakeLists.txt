@@ -113,7 +113,7 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
     ${BufferManagement_INCLUDES}
     ${configSensor_INCLUDES}
     ${ARP826_INCLUDES}
-    ${Common_INCLUDES}
+ok    ${Common_INCLUDES}
     #    ${EFCP_INCLUDES}
     ${IPCP_INCLUDES}
     #    ${NetworkInterface_INCLUDES}
@@ -180,8 +180,14 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
   )
   add_library(Rmt STATIC ${Rmt_SOURCES})
   target_include_directories(Rmt PUBLIC
+    ${configSensor_INCLUDES}
+    ${Common_INCLUDES}
+    ${ARP826_INCLUDES}
+    ${BufferManagement_INCLUDES}
     ${Rmt_INCLUDES}
     ${EFCP_INCLUDES}
+    ${Portability_INCLUDES}
+    ${IPCP_INCLUDES}
   )
   set_target_properties(Rmt PROPERTIES EXCLUDE_FROM_ALL TRUE)
 

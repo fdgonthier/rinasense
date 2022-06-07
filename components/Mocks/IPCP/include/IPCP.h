@@ -9,7 +9,7 @@
  */
 
 #include "portability/port.h"
-#include "ipcp_events.h"
+#include "IPCP_events.h"
 
 #define SEND_STRUCT_WAIT_MAX 
 
