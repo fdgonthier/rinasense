@@ -15,17 +15,17 @@ static portTableEntry_t xPortIdTable[2];
 pci_t *vCastPointerTo_pci_t(void *pvArgument);
 
 /* @brief Called when a SDU arrived into the RMT from the Shim DIF */
-bool_t xRmtReceive(rmt_t *pxRmt, struct du_t *pxDu, portId_t xFrom);
+bool_t xRmtReceive(struct rmt_t *pxRmt, struct du_t *pxDu, portId_t xFrom);
 
 /* @brief Called when a SDU arrived into the RMT from the EFCP Container*/
-static bool_t xRmtN1PortWriteDu(rmt_t *pxRmt, rmtN1Port_t *pxN1Port, struct du_t *pxDu);
+static bool_t xRmtN1PortWriteDu(struct rmt_t *pxRmt, rmtN1Port_t *pxN1Port, struct du_t *pxDu);
 
-static bool_t xRmtProcessMgmtPdu(rmt_t *pxRmt, portId_t xPortId, struct du_t *pxDu);
+static bool_t xRmtProcessMgmtPdu(struct rmt_t *pxRmt, portId_t xPortId, struct du_t *pxDu);
 
 /* @brief Create an N-1 Port in the RMT Component*/
-static rmtN1Port_t *pxRmtN1PortCreate(portId_t xId, ipcpInstance_t *pxN1Ipcp);
+static rmtN1Port_t *pxRmtN1PortCreate(portId_t xId, struct ipcpInstance *pxN1Ipcp);
 
-static rmtN1Port_t *pxRmtN1PortCreate(portId_t xId, ipcpInstance_t *pxN1Ipcp)
+static rmtN1Port_t *pxRmtN1PortCreate(portId_t xId, struct ipcpInstance *pxN1Ipcp)
 {
 
 	LOGI(TAG_RMT, "Creating a N-1 Port in the RMT");
@@ -58,9 +58,9 @@ static rmtN1Port_t *pxRmtN1PortCreate(portId_t xId, ipcpInstance_t *pxN1Ipcp)
 /* @brief Bind the N-1 Port with the RMT. SDUP and RMT Policies are not considered.�
  * It is called from the IPCP normal when a Flow is required to be bounded. From the
  * IPCP normal is send the RMT instance, the portId from the Shim, and Shim Instance */
-bool_t xRmtN1PortBind(rmt_t *pxRmtInstance, portId_t xId, ipcpInstance_t *pxN1Ipcp);
+bool_t xRmtN1PortBind(struct rmt_t *pxRmtInstance, portId_t xId, struct ipcpInstance *pxN1Ipcp);
 
-bool_t xRmtN1PortBind(rmt_t *pxRmtInstance, portId_t xId, ipcpInstance_t *pxN1Ipcp)
+bool_t xRmtN1PortBind(struct rmt_t *pxRmtInstance, portId_t xId, struct ipcpInstance *pxN1Ipcp)
 {
     LOGI(TAG_RMT, "Binding the RMT with the port id:%d", xId);
 
@@ -127,7 +127,7 @@ bool_t xRmtN1PortBind(rmt_t *pxRmtInstance, portId_t xId, ipcpInstance_t *pxN1Ip
 /* @brief Add an Address into the RMT list. This list is useful when the
  * packet arrived and need to know whether it is for us or not. */
 
-bool_t xRmtAddressAdd(rmt_t *pxInstance, address_t xAddress)
+bool_t xRmtAddressAdd(struct rmt_t *pxInstance, address_t xAddress)
 {
 	rmtAddress_t *pxRmtAddr;
 
@@ -158,9 +158,9 @@ bool_t xRmtAddressAdd(rmt_t *pxInstance, address_t xAddress)
 
 /* @brief Check if the Address defined in the PDU is stored in
  * the address list in the RMT.*/
-bool_t xRmtPduIsAddressedToMe(rmt_t *pxRmt, address_t xAddress);
+bool_t xRmtPduIsAddressedToMe(struct rmt_t *pxRmt, address_t xAddress);
 
-bool_t xRmtPduIsAddressedToMe(rmt_t *pxRmt, address_t xAddress)
+bool_t xRmtPduIsAddressedToMe(struct rmt_t *pxRmt, address_t xAddress)
 {
 	rmtAddress_t *pxAddr;
 	RsListItem_t *pxListItem, *pxNext;
@@ -190,7 +190,7 @@ bool_t xRmtPduIsAddressedToMe(rmt_t *pxRmt, address_t xAddress)
 }
 
 
-static bool_t xRmtProcessMgmtPdu(rmt_t *pxRmt, portId_t xPortId, struct du_t *pxDu)
+static bool_t xRmtProcessMgmtPdu(struct rmt_t *pxRmt, portId_t xPortId, struct du_t *pxDu)
 {
 
 	if (!pxRmt->pxParent)
@@ -214,9 +214,9 @@ static bool_t xRmtProcessMgmtPdu(rmt_t *pxRmt, portId_t xPortId, struct du_t *px
 	return true;
 }
 
-static bool_t xRmtProcessDtPdu(rmt_t *pxRmt, portId_t xPortId, struct du_t *pxDu);
+static bool_t xRmtProcessDtPdu(struct rmt_t *pxRmt, portId_t xPortId, struct du_t *pxDu);
 
-static bool_t xRmtProcessDtPdu(rmt_t *pxRmt, portId_t xPortId, struct du_t *pxDu)
+static bool_t xRmtProcessDtPdu(struct rmt_t *pxRmt, portId_t xPortId, struct du_t *pxDu)
 {
 	address_t xDstAddrTmp;
 	cepId_t xCepTmp;
@@ -260,7 +260,7 @@ static bool_t xRmtProcessDtPdu(rmt_t *pxRmt, portId_t xPortId, struct du_t *pxDu
 	return true;
 }
 
-bool_t xRmtReceive(rmt_t *pxRmt, struct du_t *pxDu, portId_t xFrom)
+bool_t xRmtReceive(struct rmt_t *pxRmt, struct du_t *pxDu, portId_t xFrom)
 {
 	ESP_LOGI(TAG_RMT, "RMT has received a RINA packet from the port %d", xFrom);
 
@@ -380,7 +380,7 @@ bool_t xRmtReceive(rmt_t *pxRmt, struct du_t *pxDu, portId_t xFrom)
 	}
 }
 
-static bool_t xRmtN1PortWriteDu(rmt_t *pxRmt,
+static bool_t xRmtN1PortWriteDu(struct rmt_t *pxRmt,
 									rmtN1Port_t *pxN1Port,
 									struct du_t *pxDu)
 {
@@ -424,7 +424,7 @@ static bool_t xRmtN1PortWriteDu(rmt_t *pxRmt,
 	return true;
 }
 
-bool_t xRmtSendPortId(rmt_t *pxRmtInstance,
+bool_t xRmtSendPortId(struct rmt_t *pxRmtInstance,
                       portId_t xPortId,
                       struct du_t *pxDu)
 {
@@ -524,7 +524,7 @@ bool_t xRmtSendPortId(rmt_t *pxRmtInstance,
 	return ret;
 }
 
-bool_t xRmtSend(rmt_t *pxRmtInstance,
+bool_t xRmtSend(struct rmt_t *pxRmtInstance,
                 struct du_t *pxDu)
 {
 	int i;
@@ -580,9 +580,9 @@ pci_t *vCastPointerTo_pci_t(void *pvArgument)
 	return (void *)(pvArgument);
 }
 
-rmt_t *pxRmtCreate(struct efcpContainer_t *pxEfcpc)
+struct rmt_t *pxRmtCreate(struct efcpContainer_t *pxEfcpc, struct ipcpInstance *pxInstance)
 {
-	rmt_t *pxRmtTmp;
+	struct rmt_t *pxRmtTmp;
 	rmtN1Port_t *pxPortN1[2];
 
 	if (!pxEfcpc)

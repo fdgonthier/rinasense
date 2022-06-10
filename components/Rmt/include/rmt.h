@@ -46,7 +46,7 @@ typedef struct xRMT_N1_PORT {
 	portId_t			xPortId;
 
 	/* Shim Instance*/
-	ipcpInstance_t	* 	pxN1Ipcp;
+	struct ipcpInstance	* 	pxN1Ipcp;
 
 	/* State of the Port*/
 	eFlowState_t		eState;
@@ -73,13 +73,13 @@ typedef struct xRMT_ADDRESS {
         RsListItem_t   xAddressListItem;
 }rmtAddress_t;
 
-typedef struct xRMT
+struct rmt_t
 {
 	/* List of Address */
 	RsList_t      					xAddresses;
 
 	/* IPCP Instances Parent*/
-	ipcpInstance_t * 				pxParent;
+	struct ipcpInstance * 				pxParent;
 
 	/* EFCP Container associated with */
 	struct efcpContainer_t * 		pxEfcpc;
@@ -88,7 +88,7 @@ typedef struct xRMT
 	rmtN1Port_t * 					pxN1Port;
 	struct rmt_Config_t * 			pxRmtCfg;
 
-}rmt_t;
+};
 
 
 typedef struct xPORT_TABLE_ENTRY
@@ -99,15 +99,15 @@ typedef struct xPORT_TABLE_ENTRY
 
 
 pci_t * vCastPointerTo_pci_t(void * pvArgument);
-bool_t xRmtSend(rmt_t * pxRmtInstance,struct du_t * pxDu);
-rmt_t * pxRmtCreate( struct efcpContainer_t * pxEfcpc, ipcpInstance_t *pxInstance);
-bool_t xRmtN1PortBind(rmt_t * pxRmtInstance, portId_t xId, ipcpInstance_t * pxN1Ipcp);
-bool_t xRmtSendPortId(rmt_t * pxRmtInstance,
+bool_t xRmtSend(struct rmt_t * pxRmtInstance,struct du_t * pxDu);
+struct rmt_t * pxRmtCreate( struct efcpContainer_t * pxEfcpc, struct ipcpInstance *pxInstance);
+bool_t xRmtN1PortBind(struct rmt_t * pxRmtInstance, portId_t xId, struct ipcpInstance * pxN1Ipcp);
+bool_t xRmtSendPortId(struct rmt_t * pxRmtInstance,
 		     portId_t xPortId,
 		     struct du_t * pxDu);
 
-bool_t xRmtReceive ( rmt_t * pxRmt, struct du_t * pxDu, portId_t xFrom );
-bool_t xRmtAddressAdd(rmt_t * pxInstance, address_t xAddress);
+bool_t xRmtReceive ( struct rmt_t * pxRmt, struct du_t * pxDu, portId_t xFrom );
+bool_t xRmtAddressAdd(struct rmt_t * pxInstance, address_t xAddress);
 
 #endif /* COMPONENTS_RMT_INCLUDE_DU_H_ */
 

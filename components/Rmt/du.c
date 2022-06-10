@@ -12,12 +12,11 @@
 #include "rmt.h"
 #include "du.h"
 #include "pci.h"
-#include "IPCP.h"
 #include "BufferManagement.h"
 
 #define TAG_DTP "[DTP]"
 
-bool_t xDuDestroy(struct du_t * pxDu)
+bool_t xDuDestroy(struct du_t *pxDu)
 {
 	/* If there is an NetworkBuffer then release and release memory */
 	if (pxDu->pxNetworkBuffer)
@@ -150,7 +149,7 @@ bool_t xDuEncap(struct du_t * pxDu, pduType_t xType)
 	return true;
 }
 
-bool_t xDuIsOk(const struct du_t * pxDu)
+bool_t xDuIsOk(const struct du_t *pxDu)
 {
 	return (pxDu && pxDu->pxNetworkBuffer ? true : false);
 }

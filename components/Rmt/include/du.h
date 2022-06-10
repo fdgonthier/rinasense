@@ -8,10 +8,10 @@
 #ifndef COMPONENTS_RMT_INCLUDE_DU_H_
 #define COMPONENTS_RMT_INCLUDE_DU_H_
 
-#include "rmt.h"
-#include "pci.h"
-
 #include "portability/port.h"
+#include "buffer.h"
+#include "common.h"
+#include "pci.h"
 
 struct du_t {
 
@@ -24,7 +24,7 @@ struct du_t {
 
 bool_t xDuDestroy(struct du_t * pxDu);
 size_t xDuLen(const struct du_t * pxDu);
-bool_t xDuDecap(struct du_t * pxDu); 
+bool_t xDuDecap(struct du_t * pxDu);
 ssize_t xDuDataLen(const  struct du_t * pxDu);
 bool_t xDuEncap(struct du_t * pxDu, pduType_t xType);
 

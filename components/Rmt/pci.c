@@ -19,7 +19,7 @@ static efcpConfig_t * pxPciGetEfcpConfig(const pci_t * pxPci)
 {
 	struct du_t * pxPdu;
 
-	pxPdu = container_of(pxPci, du_t, xPci);
+	pxPdu = container_of(pxPci, du, xPci);
 
 	return pxPdu->pxCfg;
 }
