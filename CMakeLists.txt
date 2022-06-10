@@ -113,7 +113,7 @@ elseif (${TARGET_TYPE} STREQUAL "linux_glib")
     ${BufferManagement_INCLUDES}
     ${configSensor_INCLUDES}
     ${ARP826_INCLUDES}
-ok    ${Common_INCLUDES}
+    ${Common_INCLUDES}
     #    ${EFCP_INCLUDES}
     ${IPCP_INCLUDES}
     #    ${NetworkInterface_INCLUDES}
