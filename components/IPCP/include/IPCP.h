@@ -14,7 +14,7 @@
 
 typedef struct xQUEUE_FIFO
 {
-	RsQueue_t  xQueue;
+	RsQueue_t *xQueue;
 } rfifo_t;
 
 

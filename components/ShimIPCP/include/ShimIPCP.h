@@ -5,20 +5,14 @@
  * Shim_wifi address
  */
 
-// Include FreeRTOS
-
 #ifndef SHIM_IPCP_H__INCLUDED
 #define SHIM_IPCP_H__INCLUDED
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 
 #include "IPCP.h"
 #include "factoryIPCP.h"
 #include "ARP826.h"
 #include "du.h"
-
-typedef int32_t portId_t;
+#include "rina_ids.h"
 
 /* Flow states */
 typedef enum xFLOW_STATES
@@ -46,17 +40,16 @@ typedef struct xSHIM_WIFI_FLOW
 	ePortidState_t ePortIdState;
 
 	/* IPCP Instance who is going to use the Flow*/
-	ipcpInstance_t *pxUserIpcp;
+	struct ipcpInstance * pxUserIpcp;
 
 	/* Maybe this is not needed*/
 	rfifo_t *pxSduQueue;
 
 	/* Flow item to register in the List of Shim WiFi Flows */
-	ListItem_t xFlowItem;
-
+	RsListItem_t		xFlowItem;
 } shimFlow_t;
 
-BaseType_t xShimEnrollToDIF(const MACAddress_t *pxPhyDev);
+bool_t xShimEnrollToDIF( const MACAddress_t * pxPhyDev );
 
 /*-------------------------------------------*/
 /* FlowAllocateRequest (naming-info). Naming-info about the destination.
@@ -65,19 +58,20 @@ BaseType_t xShimEnrollToDIF(const MACAddress_t *pxPhyDev);
  * source and destination application (ePENDING),
  * - If stated is eNULL then RINA_xARPMapping is called.
  * */
-BaseType_t xShimFlowAllocateRequest(portId_t xPortId,
+bool_t xShimFlowAllocateRequest(portId_t xPortId,
 									const name_t *pxSourceInfo,
 									const name_t *pxDestinationInfo,
 									struct ipcpInstanceData_t *pxData);
 
-BaseType_t xShimFlowAllocateResponse(struct ipcpInstanceData_t *pxShimInstanceData, portId_t xPortId);
+
+bool_t xShimFlowAllocateResponse(struct ipcpInstanceData *pxShimInstanceData, struct ipcpInstance *pxUserIpcp, portId_t xPortId);
 
 /*-------------------------------------------*/
 /* FlowDeallocate.
  * Primitive invoked by the application to discard all state regarding this flow.
  * - Port_id change to eNULL.
  * */
-BaseType_t xShimFlowDeallocate(struct ipcpInstanceData_t *pxData, portId_t xId);
+bool_t xShimFlowDeallocate(struct ipcpInstanceData * pxData, portId_t xId);
 
 /*-------------------------------------------*/
 /* applicationRegister (naming-info)
@@ -89,7 +83,10 @@ BaseType_t xShimFlowDeallocate(struct ipcpInstanceData_t *pxData, portId_t xId);
  * Return a pdTrue if Success or pdFalse Failure.
  * */
 
-BaseType_t xShimApplicationRegister(struct ipcpInstanceData_t *pxData, name_t *pxAppName, name_t *pxDafName);
+bool_t xShimApplicationRegister(struct ipcpInstanceData *pxData,
+									const name_t * pxAppName,
+									const name_t * pxDafName);
+
 /*-------------------------------------------*/
 /* applicationUnregister (naming-info)
  * Primitive invoked before all other functions:
@@ -99,7 +96,7 @@ BaseType_t xShimApplicationRegister(struct ipcpInstanceData_t *pxData, name_t *p
  * in the cache ARP.
  * Return a pdTrue if Success or pdFalse Failure.
  * */
-BaseType_t xShimApplicationUnregister(struct ipcpInstanceData_t *pxData, name_t *pxName);
+bool_t xShimApplicationUnregister(struct ipcpInstanceData *  pxData , const name_t * pxName);
 
 /*-------------------------------------------*/
 /* Write (SDUs)
@@ -127,9 +124,14 @@ void vShimWiFiInit(ipcpInstance_t *pxShimWiFiInstance);
 
 ipcpInstance_t *pxShimWiFiCreate(ipcProcessId_t xIpcpId);
 
-BaseType_t xShimSDUWrite(struct ipcpInstanceData_t *pxData, portId_t xId, struct du_t *pxDu, BaseType_t uxBlocking);
+struct ipcpInstance * pxShimWiFiCreate( struct ipcpFactoryData * pxFactoryData, ipcProcessId_t xIpcpId);
 
-EthernetHeader_t *vCastConstPointerTo_EthernetHeader_t(const void *pvArgument);
+bool_t xShimSDUWrite(struct ipcpInstanceData * pxData, portId_t xId, struct du_t * pxDu, bool_t uxBlocking);
+
+
+EthernetHeader_t * vCastConstPointerTo_EthernetHeader_t(const void * pvArgument);
+
+bool_t xShimIPCPInitFactory( struct ipcpFactories *pxFactoriesList);
 
 BaseType_t xShimIPCPInitFactory(factories_t *pxFactoriesList);
 
