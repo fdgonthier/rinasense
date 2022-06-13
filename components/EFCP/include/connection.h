@@ -10,11 +10,10 @@
 
 
 #include "common.h"
-#include "freertos/FreeRTOS.h"
 
-connection_t *  pxConnectionCreate(void);
+struct connection_t *  pxConnectionCreate(void);
 
-BaseType_t xConnectionDestroy(connection_t * pxConn);
+bool_t xConnectionDestroy(struct connection_t * pxConn);
 
 
 

@@ -10,10 +10,13 @@
 
 #include <stdio.h>
 
+#include "portability/port.h"
+
 #include "du.h"
 #include "rmt.h"
 #include "common.h"
 #include "delim.h"
+#include "num_mgr.h"
 
 /* Retransmission Queue RTXQ used to buffer those PDUs
  * that may require retransmission */
@@ -287,7 +290,7 @@ typedef struct xDTP
 
 } dtp_t;
 
-typedef struct xConnection
+struct connection_t
 {
         portId_t xPortId;
         address_t xSourceAddress;
@@ -295,7 +298,7 @@ typedef struct xConnection
         cepId_t xSourceCepId;
         cepId_t xDestinationCepId;
         qosId_t xQosId;
-} connection_t;
+};
 
 typedef enum
 {
@@ -317,6 +320,7 @@ struct efcpContainer_t
 {
         // struct rset *        rset;
         efcpImapRow_t           *pxEfcpImap;
+        num_mgr_t               *pxCidm;
     //cepIdm_t                *pxCidm;
         efcpConfig_t            *pxConfig;
         struct rmt_t            *pxRmt;
@@ -328,8 +332,8 @@ struct efcpContainer_t
 struct efcp_t
 {
 
-        connection_t *pxConnection;
-        ipcpInstance_t *pxUserIpcp; // IPCP NORMAL
+        struct connection_t *pxConnection;
+        struct ipcpInstance *pxUserIpcp; // IPCP NORMAL
         dtp_t *pxDtp;               // implement in EFCP Component
         delim_t *pxDelim;           // delimiting module
         struct efcpContainer_t *pxEfcpContainer;
