@@ -6,7 +6,7 @@
 #include "NetworkInterface.h"
 #include "NetworkInterface_mq.h"
 #include "portability/port.h"
-#include "IPCP.h"
+#include "IPCP_api.h"
 
 const MACAddress_t mac = {
     1, 2, 3, 4, 5, 6

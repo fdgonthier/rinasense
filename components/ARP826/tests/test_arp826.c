@@ -3,7 +3,7 @@
 #include "ARP826.h"
 #include "configSensor.h"
 #include "rina_gpha.h"
-#include "IPCP.h"
+#include "IPCP_api.h"
 #include "NetworkInterface.h"
 #include "BufferManagement.h"
 
