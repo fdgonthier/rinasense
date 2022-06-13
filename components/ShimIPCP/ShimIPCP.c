@@ -76,34 +76,6 @@ static bool_t prvShimUnbindDestroyFlow(struct ipcpInstanceData *xData, shimFlow_
  * */
 string_t pcShimNameToString(const name_t *xNameInfo); // Could be reutilized by others?, private?
 
-/** @brief Convert the Complete Address (ProcessName-ProcessInstance-EntityName-EntityInstance)
- *  to Generic Protocol Address
- * */
-gpa_t *pxShimNameToGPA(const name_t *xAplicationInfo);
-
-/* @brief Destroy an application Name from the Data structure*/
-void vShimNameDestroy(name_t *pxName);
-
-/* @brief Destroy an application Name from the Data structure*/
-void vShimNameFini(name_t *pxName);
-
-/* @brief Create a generic protocol address based on an string address*/
-gpa_t *pxShimCreateGPA(const uint8_t *pucAddress, size_t xLength); // ARP ALSO CHECK
-
-/* @brief Create a generic hardware address based on the MAC address*/
-gha_t *pxShimCreateGHA(eGHAType_t xType, const MACAddress_t *pxAddress);
-
-/* @brief Check if a generic protocol Address was created correctly*/
-bool_t xShimIsGPAOK(const gpa_t *pxGpa);
-
-/* @brief Check if a generic hardware Address was created correctly*/
-bool_t xShimIsGHAOK(const gha_t *pxGha);
-
-/* @brief Destroy a generic protocol Address to clean up*/
-void vShimGPADestroy(gpa_t *pxGpa);
-
-/* @brief Destroy a generic hardware Address to clean up*/
-void vShimGHADestroy(gha_t *pxGha);
 
 EthernetHeader_t *vCastConstPointerTo_EthernetHeader_t(const void *pvArgument)
 {
@@ -235,10 +207,10 @@ bool_t xShimFlowAllocateRequest(portId_t xPortId,
 
 		pxFlow->xPortId = xPortId;
 		pxFlow->ePortIdState = ePENDING;
-		pxFlow->pxDestPa = pxShimNameToGPA(pxDestinationInfo);
-		// pxFlow->pxUserIpcp = pxUserIpcp;
+		pxFlow->pxDestPa = pxNameToGPA(pxDestinationInfo);
+		pxFlow->pxUserIpcp = pxUserIpcp;
 
-		if (!xShimIsGPAOK(pxFlow->pxDestPa))
+		if (!xIsGPAOK(pxFlow->pxDestPa))
 		{
 			LOGE(TAG_SHIM, "Destination protocol address is not OK");
 			prvShimUnbindDestroyFlow(pxData, pxFlow);
@@ -417,12 +389,12 @@ bool_t xShimApplicationRegister(struct ipcpInstanceData *pxData,
 		return false;
 	}
 
-	pxPa = pxShimNameToGPA(pxAppName);
+	pxPa = pxNameToGPA(pxAppName);
 
-	if (!xShimIsGPAOK(pxPa))
+	if (!xIsGPAOK(pxPa))
 	{
 		LOGI(TAG_SHIM, "Protocol Address is not OK ");
-		vShimNameFini(pxData->pxAppName);
+		vRstrNameDestroy(pxData->pxAppName);
 		return false;
 	}
 
@@ -431,13 +403,13 @@ bool_t xShimApplicationRegister(struct ipcpInstanceData *pxData,
 		xNetworkInterfaceInitialise(pxData->pxPhyDev);
 	}
 
-	pxHa = pxShimCreateGHA(MAC_ADDR_802_3, pxData->pxPhyDev);
+	pxHa = pxCreateGHA(MAC_ADDR_802_3, pxData->pxPhyDev);
 
-	if (!xShimIsGHAOK(pxHa))
+	if (!xIsGHAOK(pxHa))
 	{
 		LOGI(TAG_SHIM, "Hardware Address is not OK ");
-		vShimNameFini(pxData->pxAppName);
-		vShimGHADestroy(pxHa);
+		vRstrNameDestroy(pxData->pxAppName);
+		vGHADestroy(pxHa);
 		return false;
 	}
 
@@ -447,9 +419,9 @@ bool_t xShimApplicationRegister(struct ipcpInstanceData *pxData,
 	{
 		// destroy all
 		LOGI(TAG_SHIM, "APPHandle was not created ");
-		vShimGPADestroy(pxPa);
-		vShimGHADestroy(pxHa);
-		vShimNameFini(pxData->pxAppName);
+		vGPADestroy(pxPa);
+		vGHADestroy(pxHa);
+		vRstrNameDestroy(pxData->pxAppName);
 		return false;
 	}
 
@@ -463,21 +435,21 @@ bool_t xShimApplicationRegister(struct ipcpInstanceData *pxData,
 		LOGE(TAG_SHIM, "Removing ARP Entry for DAF");
 		xARPRemove(pxData->pxAppHandle->pxPa, pxData->pxAppHandle->pxHa);
 		pxData->pxAppHandle = NULL;
-		vShimNameDestroy(pxData->pxAppName);
-		vShimGHADestroy(pxHa);
+		vRstrNameDestroy(pxData->pxAppName);
+		vGHADestroy(pxHa);
 		return false;
 	}
 
-	pxPa = pxShimNameToGPA(pxDafName);
+	pxPa = pxNameToGPA(pxDafName);
 
-	if (!xShimIsGPAOK(pxPa))
+	if (!xIsGPAOK(pxPa))
 	{
 		LOGE(TAG_SHIM, "Failed to create gpa");
 		xARPRemove(pxData->pxAppHandle->pxPa, pxData->pxAppHandle->pxHa);
 		pxData->pxAppHandle = NULL;
-		vShimNameDestroy(pxData->pxDafName);
-		vShimNameDestroy(pxData->pxAppName);
-		vShimGHADestroy(pxHa);
+		vRstrNameDestroy(pxData->pxDafName);
+		vRstrNameDestroy(pxData->pxAppName);
+		vGHADestroy(pxHa);
 		return false;
 	}
 
@@ -488,10 +460,10 @@ bool_t xShimApplicationRegister(struct ipcpInstanceData *pxData,
 		LOGE(TAG_SHIM, "Failed to register DAF in ARP");
 		xARPRemove(pxData->pxAppHandle->pxPa, pxData->pxAppHandle->pxHa);
 		pxData->pxAppHandle = NULL;
-		vShimNameDestroy(pxData->pxAppName);
-		vShimNameDestroy(pxData->pxDafName);
-		vShimGPADestroy(pxPa);
-		vShimGHADestroy(pxHa);
+		vRstrNameDestroy(pxData->pxAppName);
+		vRstrNameDestroy(pxData->pxDafName);
+		vGPADestroy(pxPa);
+		vGHADestroy(pxHa);
 
 		return false;
 	}
@@ -564,9 +536,9 @@ bool_t xShimApplicationUnregister(struct ipcpInstanceData *pxData, const name_t 
 		pxData->pxDafHandle = NULL;
 	}
 
-	vShimNameDestroy(pxData->pxAppName);
+	vRstrNameFini(pxData->pxAppName);
 	pxData->pxAppName = NULL;
-	vShimNameDestroy(pxData->pxDafName);
+	vRstrNameFini(pxData->pxDafName);
 	pxData->pxDafName = NULL;
 
 	LOGI(TAG_SHIM, "Application unregister");
@@ -738,9 +710,9 @@ static bool_t prvShimFlowDestroy(struct ipcpInstanceData *xData, shimFlow_t *xFl
 
 	/* FIXME: Complete what to do with xData*/
 	if (xFlow->pxDestPa)
-		vShimGPADestroy(xFlow->pxDestPa);
+		vGPADestroy(xFlow->pxDestPa);
 	if (xFlow->pxDestHa)
-		vShimGHADestroy(xFlow->pxDestHa);
+		vGHADestroy(xFlow->pxDestHa);
 	if (xFlow->pxSduQueue)
 		vRsQueueDelete(xFlow->pxSduQueue->xQueue);
 
@@ -797,7 +769,7 @@ bool_t xShimSDUWrite(struct ipcpInstanceData *pxData, portId_t xId, struct du_t 
 	}
 
 	LOGI(TAG_SHIM, "SDUWrite: creating source GHA");
-	pxSrcHw = pxShimCreateGHA(MAC_ADDR_802_3, pxData->pxPhyDev);
+	pxSrcHw = pxCreateGHA(MAC_ADDR_802_3, pxData->pxPhyDev);
 	if (!pxSrcHw)
 	{
 		LOGE(TAG_SHIM, "Failed to get source HW addr");
@@ -1010,9 +982,10 @@ void vShimWiFiInit(ipcpInstance_t *pxShimWiFiInstance)
 {
 	/*xShimWiFiInit is going to init the  WiFi drivers and associate to the AP.
 	 * Update de MacAddress variable depending on the WiFi drivers. Sent this variable
-	 * as event data to be used when the shimWiFi DIF will be created.*/
-	ESP_LOGI(TAG_SHIM, "SHIMWiFIInit NEW");
-	RINAStackEvent_t xEnrollEvent = {eShimEnrolledEvent, NULL};
+	 * as event data to be used when the shimWiFi D(F will be created.*/
+
+	LOGI(TAG_SHIM, "SHIMWiFIInit");
+	RINAStackEvent_t xEnrollEvent = {eShimEnrollEvent, NULL};
     struct timespec ts;
 
 	if (!xShimEnrollToDIF(pxShimWiFiInstance->pxData->pxPhyDev))
