@@ -118,11 +118,7 @@ eARPLookupResult_t eARPLookupGPA(const gpa_t *gpaToLookup);
 void vARPRefreshCacheEntry(const gpa_t *ulIPCPAddress, const gha_t *pxMACAddress);
 void vARPRemoveCacheEntry(const gpa_t *ulIPCPAddress, const gha_t *pxMACAddress);
 
-BaseType_t xARPRemove(const gpa_t *pxPa, const gha_t *pxHa);
-
 struct rinarpHandle_t *pxARPAdd(gpa_t *pxPa, gha_t *pxHa);
-
-BaseType_t xARPResolveGPA(const gpa_t *tpa, const gpa_t *spa, const gha_t *sha);
 
 void vARPInitCache(void);
 

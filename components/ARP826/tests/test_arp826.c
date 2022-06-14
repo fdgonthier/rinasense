@@ -44,7 +44,7 @@ void testARPCache() {
     // Make sure we can lookup a GPA in the cache.
     RsAssert((gpa1 = pxCreateGPA(addr1, sizeof(addr1))) != NULL);
     RsAssert((gha1 = pxCreateGHA(MAC_ADDR_802_3, &mac1)) != NULL);
-    RsAssert((rh = pxARPAddToCache(gpa1, gha1)) != NULL);
+    RsAssert((rh = pxARPAdd(gpa1, gha1)) != NULL);
     vARPPrintCache();
     RsAssert((r = eARPLookupGPA(gpa1)) == eARPCacheHit);
     //RsAssert((gha2 = pxARPLookupGHA(gpa1)) != NULL);

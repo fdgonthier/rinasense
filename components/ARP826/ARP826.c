@@ -110,7 +110,7 @@ bool_t xARPAddressGPAGrow(gpa_t *pxGpa, size_t uxLength, uint8_t ucFiller)
 	if (!new_address)
 		return false;
 
-	memcpy(new_address, pxGpa->ucAddress, pxGpa->uxLength);
+	memcpy(new_address, pxGpa->pucAddress, pxGpa->uxLength);
 	memset(new_address + pxGpa->uxLength, ucFiller, uxLength - pxGpa->uxLength);
 
 	vRsMemFree(pxGpa->pucAddress);
@@ -137,14 +137,14 @@ bool_t xARPAddressGPAShrink(gpa_t *pxGpa, uint8_t ucFiller)
 	LOGI(TAG_ARP, "Looking for filler 0x%02X in GPA (length = %zd)",
          ucFiller, pxGpa->uxLength);
 
-	pucPosition = FreeRTOS_memscan(pxGpa->ucAddress, ucFiller, pxGpa->uxLength);
-	if (pucPosition >= pxGpa->ucAddress + pxGpa->uxLength)
+	pucPosition = FreeRTOS_memscan(pxGpa->pucAddress, ucFiller, pxGpa->uxLength);
+	if (pucPosition >= pxGpa->pucAddress + pxGpa->uxLength)
 	{
 		LOGI(TAG_ARP, "GPA doesn't need to be shrinked ...");
 		return false;
 	}
 
-	uxLength = pucPosition - pxGpa->ucAddress;
+	uxLength = pucPosition - pxGpa->pucAddress;
 
 	LOGI(TAG_ARP, "Shrinking GPA to %zd", uxLength);
 
@@ -152,7 +152,7 @@ bool_t xARPAddressGPAShrink(gpa_t *pxGpa, uint8_t ucFiller)
 	if (!pucNewAddress)
 		return false;
 
-	memcpy(pucNewAddress, pxGpa->ucAddress, uxLength);
+	memcpy(pucNewAddress, pxGpa->pucAddress, uxLength);
 
 	vRsMemFree(pxGpa->pucAddress);
 	pxGpa->pucAddress = pucNewAddress;
@@ -343,7 +343,7 @@ bool_t vARPSendRequest(gpa_t *pxTpa, gpa_t *pxSpa, gha_t *pxSha)
 
 	if (pxNetworkBuffer != NULL)
 	{
-		pxNetworkBuffer->ulGpa = pxTpa->ucAddress;
+		pxNetworkBuffer->ulGpa = pxTpa->pucAddress;
 
 		prvARPGeneratePacket(pxNetworkBuffer, pxSha, pxSpa, pxTpa, ARP_REQUEST);
 
@@ -460,7 +460,7 @@ static void prvARPGeneratePacket(NetworkBufferDescriptor_t *const pxNetworkBuffe
 	memcpy(pucArpPtr, pxSha->xAddress.ucBytes, sizeof(pxSha->xAddress));
 	pucArpPtr += sizeof(pxSha->xAddress);
 
-	memcpy(pucArpPtr, pxSpa->ucAddress, pxSpa->uxLength);
+	memcpy(pucArpPtr, pxSpa->pucAddress, pxSpa->uxLength);
 	pucArpPtr += pxSpa->uxLength;
 
 	/* THA */
@@ -468,7 +468,7 @@ static void prvARPGeneratePacket(NetworkBufferDescriptor_t *const pxNetworkBuffe
 	pucArpPtr += sizeof(pxTha->xAddress);
 
 	/* TPA */
-	memcpy(pucArpPtr, pxTpa->ucAddress, pxTpa->uxLength);
+	memcpy(pucArpPtr, pxTpa->pucAddress, pxTpa->uxLength);
 	pucArpPtr += pxTpa->uxLength;
 
 	pxNetworkBuffer->xDataLength = uxLength;
@@ -681,8 +681,8 @@ eFrameProcessingResult_t eARPProcessPacket(ARPPacket_t *const pxARPFrame)
 
 		vARPAddCacheEntry(pxHandle, 3);
 
-		vShimGPADestroy(pxTmpTpa);
-		vShimGHADestroy(pxTmpTha);
+		vGPADestroy(pxTmpTpa);
+		vGHADestroy(pxTmpTha);
 
 		// vARPPrintCache(); // test
 
@@ -787,7 +787,7 @@ eARPLookupResult_t eARPLookupGPA(const gpa_t *pxGpaToLookup)
 void vARPUpdateMACAddress(const uint8_t ucMACAddress[MAC_ADDRESS_LENGTH_BYTES], const MACAddress_t *pxPhyDev)
 {
 
-	(void)memcpy(pxPhyDev->ucBytes, ucMACAddress, (size_t)MAC_ADDRESS_LENGTH_BYTES);
+	(void)memcpy((void *)pxPhyDev->ucBytes, ucMACAddress, (size_t)MAC_ADDRESS_LENGTH_BYTES);
 	LOGI(TAG_ARP, "MAC Address updated");
 }
 
@@ -906,7 +906,7 @@ void vARPPrintCache(void)
 
 	for (x = 0; x < ARP_CACHE_ENTRIES; x++)
 	{
-		if ((xARPCache[x].pxProtocolAddress->ucAddress != 0UL) && (xARPCache[x].ucValid != 0))
+		if ((xARPCache[x].pxProtocolAddress->pucAddress != 0UL) && (xARPCache[x].ucValid != 0))
 		{
 			LOGI(TAG_ARP, "Arp Entry %i: %3d - %s - %02x:%02x:%02x:%02x:%02x:%02x\n",
                  x,
