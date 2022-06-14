@@ -97,22 +97,7 @@ bool_t xNetworkBuffersInitialise( void )
         #endif /* configSUPPORT_STATIC_ALLOCATION */
 
 
-        if ( semInitReturn == 0 )
-        {
-            static StaticSemaphore_t xNetworkBufferSemaphoreBuffer;
-            xNetworkBufferSemaphore = xSemaphoreCreateCountingStatic(
-                NUM_NETWORK_BUFFER_DESCRIPTORS,
-                NUM_NETWORK_BUFFER_DESCRIPTORS,
-                &xNetworkBufferSemaphoreBuffer);
-        }
-#else
-        {
-            xNetworkBufferSemaphore = xSemaphoreCreateCounting(NUM_NETWORK_BUFFER_DESCRIPTORS, NUM_NETWORK_BUFFER_DESCRIPTORS);
-        }
-#endif /* configSUPPORT_STATIC_ALLOCATION */
-
-        configASSERT(xNetworkBufferSemaphore != NULL);
-
+        if ( semInitReturn == 0 ) {
             vRsListInit( &xFreeBuffersList );
 
             /* Initialise all the network buffers.  No storage is allocated to
