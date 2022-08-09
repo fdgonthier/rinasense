@@ -7,6 +7,8 @@
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 
+#include "esp_system.h"
+
 #include "IPCP.h"
 #include "ARP826.h"
 #include "BufferManagement.h"
@@ -20,6 +22,8 @@
 
 #include "Enrollment.h"
 #include "esp_log.h"
+
+int32_t time_Tx, time_RX, time_delta;
 
 MACAddress_t xlocalMACAddress = {{0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
 
@@ -242,6 +246,12 @@ static void prvIPCPTask(void *pvParameters)
             /* The network hardware driver has received a new packet.  A
              * pointer to the received buffer is located in the pvData member
              * of the received event structure. */
+            time_RX = esp_timer_get_time();
+            time_delta = time_RX - time_Tx;
+            ESP_LOGE(TAG_IPCPNORMAL, "**********TIME DELTA************");
+            ESP_LOGE(TAG_IPCPNORMAL, "time delta: %d us", time_delta);
+            ESP_LOGE(TAG_IPCPNORMAL, "**********TIME  RECEIVED************");
+            ESP_LOGE(TAG_IPCPNORMAL, "time RX: %d us", time_RX);
             prvHandleEthernetPacket(CAST_PTR_TO_TYPE_PTR(NetworkBufferDescriptor_t, xReceivedEvent.pvData));
 
             break;
@@ -253,6 +263,10 @@ static void prvIPCPTask(void *pvParameters)
 
             /* Send a network packet. The ownership will  be transferred to
              * the driver, which will release it after delivery. */
+
+            time_Tx = esp_timer_get_time();
+            ESP_LOGE(TAG_IPCPNORMAL, "**********TIME  TRANSMITED************");
+            ESP_LOGE(TAG_IPCPNORMAL, "time TX: %d us", time_Tx);
 
             (void)xNetworkInterfaceOutput(pxDescriptor, pdTRUE);
         }

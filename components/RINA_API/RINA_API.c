@@ -383,6 +383,13 @@ size_t RINA_flow_write(portId_t xPortId, void *pvBuffer, size_t uxTotalDataLengt
     TickType_t xTicksToWait;
     RINAStackEvent_t xStackTxEvent = {eStackTxEvent, NULL};
 
+    int32_t time_Init_Tx;
+
+    time_Init_Tx = esp_timer_get_time();
+
+    ESP_LOGE(TAG_RINA, "*********** TIME INIT TX Data *******");
+    ESP_LOGE(TAG_RINA, "TIme Init: %d", time_Init_Tx);
+
     /*Check that DataLength is not longer than MAX_SDU_SIZE*/
     // This should not consider??? because the delimiter split into several packets??
 

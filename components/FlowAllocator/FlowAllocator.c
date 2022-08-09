@@ -436,6 +436,13 @@ BaseType_t xFlowAllocatorDuPost(portId_t xAppPortId, struct du_t *pxDu)
     }
     (void)xTaskResumeAll();
 
+    int32_t time_Init_Rx;
+
+    time_Init_Rx = esp_timer_get_time();
+
+    ESP_LOGE(TAG_RINA, "*********** TIME INIT RX Data *******");
+    ESP_LOGE(TAG_RINA, "TIme Init: %d", time_Init_Rx);
+
     /* Set the socket's receive event */
     if (pxFlowAllocatorInstance->pxFlowAllocatorHandle->xEventBits != NULL)
     {
