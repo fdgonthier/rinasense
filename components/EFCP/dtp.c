@@ -84,12 +84,12 @@ BaseType_t xDtpPduSend(dtp_t *pxDtp, rmt_t *pxRmt, struct du_t *pxDu)
         struct efcpContainer_t *pxEfcpContainer;
         cepId_t destCepId;
 
-        ESP_LOGI(TAG_DTP, "xDtpPduSend");
+        ESP_LOGD(TAG_DTP, "xDtpPduSend");
         /* Remote flow case */
         if (pxDu->pxPci->xSource != pxDu->pxPci->xDestination)
         {
                 /*if (dtp->dtcp->sv->rendezvous_rcvr) {
-                        ESP_LOGI(TAG_DTP,"Sending to RMT in RV at RCVR");
+                        ESP_LOGD(TAG_DTP,"Sending to RMT in RV at RCVR");
                 }*/
 
                 if (!xRmtSend(pxRmt, pxDu))
@@ -123,7 +123,7 @@ BaseType_t xDtpPduSend(dtp_t *pxDtp, rmt_t *pxRmt, struct du_t *pxDu)
 
 BaseType_t xDtpWrite(dtp_t *pxDtpInstance, struct du_t *pxDu)
 {
-        ESP_LOGI(TAG_DTP, "xDtpWrite");
+        ESP_LOGD(TAG_DTP, "xDtpWrite");
         dtcp_t *pxDtcp;
         struct du_t *pxTempDu;
         struct dtp_ps *ps;
@@ -162,8 +162,8 @@ BaseType_t xDtpWrite(dtp_t *pxDtpInstance, struct du_t *pxDu)
         sbytes = xDuLen(pxDu);
         sbytes = pxDu->pxNetworkBuffer->xDataLength;
 
-        ESP_LOGI(TAG_DTP, "Calling DuEncap");
-        ESP_LOGI(TAG_DTP, "Sbytes: %d", sbytes);
+        ESP_LOGD(TAG_DTP, "Calling DuEncap");
+        ESP_LOGD(TAG_DTP, "Sbytes: %d", sbytes);
         if (!xDuEncap(pxDu, PDU_TYPE_DT))
         {
                 ESP_LOGE(TAG_DTP, "Could not encap PDU");
@@ -185,17 +185,17 @@ BaseType_t xDtpWrite(dtp_t *pxDtpInstance, struct du_t *pxDu)
         pxDu->pxPci->xPduLen = pxDu->pxNetworkBuffer->xDataLength;
         pxDu->pxPci->xSequenceNumber = xCsn;
 #if 0
-        ESP_LOGI(TAG_DTP, "------------ PCI DT-----------");
-        ESP_LOGI(TAG_DTP, "PCI Version: 0x%04x", pxDu->pxPci->ucVersion);
-        ESP_LOGI(TAG_DTP, "PCI SourceAddress: 0x%04x", pxDu->pxPci->xSource);
-        ESP_LOGI(TAG_DTP, "PCI DestinationAddress: 0x%04x", pxDu->pxPci->xDestination);
-        ESP_LOGI(TAG_DTP, "PCI QoS: 0x%04x", pxDu->pxPci->connectionId_t.xQosId);
-        ESP_LOGI(TAG_DTP, "PCI CEP Source: 0x%04x", pxDu->pxPci->connectionId_t.xSource);
-        ESP_LOGI(TAG_DTP, "PCI CEP Destination: 0x%04x", pxDu->pxPci->connectionId_t.xDestination);
-        ESP_LOGI(TAG_DTP, "PCI FLAG: 0x%04x", pxDu->pxPci->xFlags);
-        ESP_LOGI(TAG_DTP, "PCI Type: 0x%04x", pxDu->pxPci->xType);
-        ESP_LOGI(TAG_DTP, "PCI SequenceNumber: 0x%08x", pxDu->pxPci->xSequenceNumber);
-        ESP_LOGI(TAG_DTP, "PCI xPDULEN: 0x%04x", pxDu->pxPci->xPduLen);
+        ESP_LOGD(TAG_DTP, "------------ PCI DT-----------");
+        ESP_LOGD(TAG_DTP, "PCI Version: 0x%04x", pxDu->pxPci->ucVersion);
+        ESP_LOGD(TAG_DTP, "PCI SourceAddress: 0x%04x", pxDu->pxPci->xSource);
+        ESP_LOGD(TAG_DTP, "PCI DestinationAddress: 0x%04x", pxDu->pxPci->xDestination);
+        ESP_LOGD(TAG_DTP, "PCI QoS: 0x%04x", pxDu->pxPci->connectionId_t.xQosId);
+        ESP_LOGD(TAG_DTP, "PCI CEP Source: 0x%04x", pxDu->pxPci->connectionId_t.xSource);
+        ESP_LOGD(TAG_DTP, "PCI CEP Destination: 0x%04x", pxDu->pxPci->connectionId_t.xDestination);
+        ESP_LOGD(TAG_DTP, "PCI FLAG: 0x%04x", pxDu->pxPci->xFlags);
+        ESP_LOGD(TAG_DTP, "PCI Type: 0x%04x", pxDu->pxPci->xType);
+        ESP_LOGD(TAG_DTP, "PCI SequenceNumber: 0x%08x", pxDu->pxPci->xSequenceNumber);
+        ESP_LOGD(TAG_DTP, "PCI xPDULEN: 0x%04x", pxDu->pxPci->xPduLen);
 #endif
         if (!xPciIsOk(pxDu->pxPci))
         {
@@ -213,7 +213,7 @@ BaseType_t xDtpWrite(dtp_t *pxDtpInstance, struct du_t *pxDu)
                 xPciFlags = pxDu->pxPci->xFlags;
                 xPciFlags |= PDU_FLAGS_DATA_RUN;
                 pxDu->pxPci->xFlags = xPciFlags;
-                ESP_LOGI(TAG_DTP, "PCI FLAG: 0x%04x", pxDu->pxPci->xFlags);
+                ESP_LOGD(TAG_DTP, "PCI FLAG: 0x%04x", pxDu->pxPci->xFlags);
         }
 #if 0
         LOG_DBG("DTP Sending PDU %u (CPU: %d)", csn, smp_processor_id());
@@ -353,7 +353,7 @@ static inline BaseType_t xDtpPduPost(dtp_t *pxDtpInstance, struct du_t *pxDu)
                 return pdFALSE;
         }
 
-        ESP_LOGI(TAG_DTP, "DTP enqueued to upper IPCP");
+        ESP_LOGD(TAG_DTP, "DTP enqueued to upper IPCP");
         return pdTRUE;
 }
 
@@ -371,7 +371,7 @@ BaseType_t xDtpReceive(dtp_t *pxDtpInstance, struct du_t *pxDu)
         int sbytes;
         struct efcp_t *pxEfcp = 0;
 
-        ESP_LOGI(TAG_DTP, "DTP receive started...");
+        ESP_LOGD(TAG_DTP, "DTP receive started...");
 
         pxDtcp = pxDtpInstance->pxDtcp;
         pxEfcp = pxDtpInstance->pxEfcp;
@@ -412,7 +412,7 @@ BaseType_t xDtpReceive(dtp_t *pxDtpInstance, struct du_t *pxDu)
 
                 // if (pxDu->pxPci->xFlags & PDU_FLAGS_DATA_RUN)//Send 0x0000 FLAG ??? why??
                 //{
-                ESP_LOGI(TAG_DTP, "Data Run Flag");
+                ESP_LOGD(TAG_DTP, "Data Run Flag");
 
                 pxDtpInstance->pxDtpStateVector->xDrfRequired = pdFALSE;
                 pxDtpInstance->pxDtpStateVector->xRcvLeftWindowEdge = xSeqNum;
@@ -540,7 +540,7 @@ BaseType_t xDtpReceive(dtp_t *pxDtpInstance, struct du_t *pxDu)
 #endif
         xLWE = pxDtpInstance->pxDtpStateVector->xRcvLeftWindowEdge;
 
-        ESP_LOGI(TAG_DTP, "DTP receive LWE: %u", xLWE);
+        ESP_LOGD(TAG_DTP, "DTP receive LWE: %u", xLWE);
         if (xSeqNum == xLWE + 1)
         {
                 pxDtpInstance->pxDtpStateVector->xRcvLeftWindowEdge = xSeqNum;
@@ -590,7 +590,7 @@ BaseType_t xDtpReceive(dtp_t *pxDtpInstance, struct du_t *pxDu)
                  }
          }*/
 
-        ESP_LOGI(TAG_DTP, "DTP receive ended...");
+        ESP_LOGD(TAG_DTP, "DTP receive ended...");
 
         return pdTRUE;
 }
@@ -700,7 +700,7 @@ BaseType_t xDtpDestroy(dtp_t *pxInstance)
         // robject_del(&instance->robj);
         vPortFree(pxInstance);
 
-        ESP_LOGI(TAG_DTP, "DTP %pK destroyed successfully", pxInstance);
+        ESP_LOGD(TAG_DTP, "DTP %pK destroyed successfully", pxInstance);
 
         return pdTRUE;
 }

@@ -92,7 +92,7 @@ void vRINANameFini(name_t * n)
                 n->pcEntityInstance = NULL;
         }
 
-        ESP_LOGI(TAG_RINA,"Name at %pK finalized successfully", n);
+        ESP_LOGD(TAG_RINA,"Name at %pK finalized successfully", n);
 }
 
 void xRinaNameFree(name_t *xName);

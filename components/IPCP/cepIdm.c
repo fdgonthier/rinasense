@@ -62,7 +62,7 @@ BaseType_t xCepIdmAllocated(cepIdm_t *pxInstance, cepId_t xCepId)
 
                 if (pos)
                 {
-                        ESP_LOGI(TAG_IPCPMANAGER, "Port ID %p, #: %d", pos, pos->xCepId);
+                        ESP_LOGD(TAG_IPCPMANAGER, "Port ID %p, #: %d", pos, pos->xCepId);
                 }
                 else
                 {
@@ -119,7 +119,7 @@ cepId_t xCepIdmAllocate(cepIdm_t *pxInstance)
 
         pxInstance->xLastAllocated = pid;
 
-        ESP_LOGI(TAG_IPCPMANAGER, "CEP-id allocation completed successfully (CEP-id = %d)", pid);
+        ESP_LOGD(TAG_IPCPMANAGER, "CEP-id allocation completed successfully (CEP-id = %d)", pid);
 
         return pid;
 }
@@ -155,7 +155,7 @@ BaseType_t xCepIdmRelease(cepIdm_t *pxInstance,
         }
         else
         {
-                ESP_LOGI(TAG_IPCPMANAGER, "Port-id release completed successfully (port_id: %d)", id);
+                ESP_LOGD(TAG_IPCPMANAGER, "Port-id release completed successfully (port_id: %d)", id);
         }
 
         return pdTRUE;

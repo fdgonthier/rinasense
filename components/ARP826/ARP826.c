@@ -132,19 +132,19 @@ BaseType_t xARPAddressGPAShrink(gpa_t *pxGpa, uint8_t ucFiller)
 		return pdFALSE;
 	}
 
-	ESP_LOGI(TAG_ARP, "Looking for filler 0x%02X in GPA (length = %zd)",
+	ESP_LOGD(TAG_ARP, "Looking for filler 0x%02X in GPA (length = %zd)",
 			 ucFiller, pxGpa->uxLength);
 
 	pucPosition = FreeRTOS_memscan(pxGpa->ucAddress, ucFiller, pxGpa->uxLength);
 	if (pucPosition >= pxGpa->ucAddress + pxGpa->uxLength)
 	{
-		ESP_LOGI(TAG_ARP, "GPA doesn't need to be shrinked ...");
+		ESP_LOGD(TAG_ARP, "GPA doesn't need to be shrinked ...");
 		return pdFALSE;
 	}
 
 	uxLength = pucPosition - pxGpa->ucAddress;
 
-	ESP_LOGI(TAG_ARP, "Shrinking GPA to %zd", uxLength);
+	ESP_LOGD(TAG_ARP, "Shrinking GPA to %zd", uxLength);
 
 	pucNewAddress = pvPortMalloc(uxLength);
 	if (!pucNewAddress)
@@ -295,7 +295,7 @@ void vARPRefreshCacheEntry(const gpa_t *pxGpa, const gha_t *pxMACAddress)
 		/* Nothing will be stored. */
 	}
 
-	ESP_LOGI(TAG_ARP, "ARP Cache Refreshed! ");
+	ESP_LOGD(TAG_ARP, "ARP Cache Refreshed! ");
 }
 
 /*-----------------------------------------------------------*/
@@ -318,13 +318,13 @@ BaseType_t vARPSendRequest(gpa_t *pxTpa, gpa_t *pxSpa, gha_t *pxSha)
 
 	if (!xARPAddressGPAGrow(pxSpa, xMaxLen, 0x00))
 	{
-		ESP_LOGI(TAG_ARP, "Failed to grow SPA\n");
+		ESP_LOGD(TAG_ARP, "Failed to grow SPA\n");
 		return pdFALSE;
 	}
 
 	if (!xARPAddressGPAGrow(pxTpa, xMaxLen, 0x00))
 	{
-		ESP_LOGI(TAG_ARP, "Failed to grow TPA\n");
+		ESP_LOGD(TAG_ARP, "Failed to grow TPA\n");
 		return pdFALSE;
 	}
 
@@ -361,12 +361,12 @@ BaseType_t vARPSendRequest(gpa_t *pxTpa, gpa_t *pxSpa, gha_t *pxSha)
 				vReleaseNetworkBufferAndDescriptor(pxNetworkBuffer);
 				return pdFALSE;
 			}
-			ESP_LOGI(TAG_SHIM, "send by event\n");
+			ESP_LOGD(TAG_SHIM, "send by event\n");
 		}
 	}
 	else
 	{
-		ESP_LOGI(TAG_SHIM, "BufferNetwork Null\n");
+		ESP_LOGD(TAG_SHIM, "BufferNetwork Null\n");
 		return pdFALSE;
 	}
 	return pdTRUE;
@@ -741,7 +741,7 @@ eARPLookupResult_t eARPLookupGPA(const gpa_t *pxGpaToLookup)
 
 		if (xARPCache[x].pxProtocolAddress->ucAddress == pxGpaToLookup->ucAddress)
 		{
-			// ESP_LOGI(TAG_ARP, "ARP FOund: %s", xARPCache[ x ].ProtocolAddress->address == gpaToLookup->address);
+			// ESP_LOGD(TAG_ARP, "ARP FOund: %s", xARPCache[ x ].ProtocolAddress->address == gpaToLookup->address);
 
 			/* A matching valid entry was found. */
 			if (xARPCache[x].ucValid == (uint8_t)pdFALSE)
@@ -791,7 +791,7 @@ void vARPUpdateMACAddress(const uint8_t ucMACAddress[MAC_ADDRESS_LENGTH_BYTES], 
 {
 
 	(void)memcpy(pxPhyDev->ucBytes, ucMACAddress, (size_t)MAC_ADDRESS_LENGTH_BYTES);
-	ESP_LOGI(TAG_ARP, "MAC Address updated");
+	ESP_LOGD(TAG_ARP, "MAC Address updated");
 }
 
 /**
@@ -826,13 +826,13 @@ struct rinarpHandle_t *pxARPAdd(gpa_t *pxPa, gha_t *pxHa)
 
 	if (!xShimIsGPAOK(pxPa))
 	{
-		ESP_LOGI(TAG_SHIM, "GPA is not correct");
+		ESP_LOGD(TAG_SHIM, "GPA is not correct");
 		return pdFALSE;
 	}
 
 	if (!xShimIsGHAOK(pxHa))
 	{
-		ESP_LOGI(TAG_SHIM, "GHA is not correct");
+		ESP_LOGD(TAG_SHIM, "GHA is not correct");
 		return pdFALSE;
 	}
 
@@ -861,7 +861,7 @@ BaseType_t xARPRemove(const gpa_t *pxPa, const gha_t *pxha)
 	if (eARPLookupGPA(pxPa) == eARPCacheMiss)
 	{
 		ESP_LOGE(TAG_ARP, "GPA is not registered");
-		ESP_LOGI(TAG_ARP, "GPA: %s", pxPa->ucAddress);
+		ESP_LOGD(TAG_ARP, "GPA: %s", pxPa->ucAddress);
 		return pdFALSE;
 	}
 
@@ -902,7 +902,7 @@ void vARPInitCache(void)
 		xARPCache[i] = xNullCacheEntry;
 	}
 
-	ESP_LOGI(TAG_ARP, "ARP CACHE Initialized");
+	ESP_LOGD(TAG_ARP, "ARP CACHE Initialized");
 }
 
 void vARPPrintCache(void)
@@ -913,7 +913,7 @@ void vARPPrintCache(void)
 	{
 		if ((xARPCache[x].pxProtocolAddress->ucAddress != 0UL) && (xARPCache[x].ucValid != 0))
 		{
-			ESP_LOGI(TAG_ARP, "Arp Entry %i: %3d - %s - %02x:%02x:%02x:%02x:%02x:%02x\n",
+			ESP_LOGD(TAG_ARP, "Arp Entry %i: %3d - %s - %02x:%02x:%02x:%02x:%02x:%02x\n",
 					 x,
 					 xARPCache[x].ucAge,
 					 xARPCache[x].pxProtocolAddress->ucAddress,
@@ -926,13 +926,13 @@ void vARPPrintCache(void)
 		}
 		xCount++;
 	}
-	ESP_LOGI(TAG_ARP, "Arp has %d entries\n", xCount);
+	ESP_LOGD(TAG_ARP, "Arp has %d entries\n", xCount);
 }
 
 void vARPPrintMACAddress(const gha_t *pxGha)
 {
 
-	ESP_LOGI(TAG_ARP, "MACAddress: %02x:%02x:%02x:%02x:%02x:%02x\n", pxGha->xAddress.ucBytes[0],
+	ESP_LOGD(TAG_ARP, "MACAddress: %02x:%02x:%02x:%02x:%02x:%02x\n", pxGha->xAddress.ucBytes[0],
 			 pxGha->xAddress.ucBytes[1],
 			 pxGha->xAddress.ucBytes[2],
 			 pxGha->xAddress.ucBytes[3],

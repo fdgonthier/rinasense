@@ -35,7 +35,7 @@ void vRibAddObjectEntry(struct ribObject_t *pxRibObject)
         {
             xRibObjectTable[x].pxRibObject = pxRibObject;
             xRibObjectTable[x].xValid = pdTRUE;
-            ESP_LOGI(TAG_RIB, "Rib Object Entry successful:%s, %p", pxRibObject->ucObjName, pxRibObject);
+            ESP_LOGD(TAG_RIB, "Rib Object Entry successful:%s, %p", pxRibObject->ucObjName, pxRibObject);
 
             break;
         }
@@ -45,7 +45,7 @@ void vRibAddObjectEntry(struct ribObject_t *pxRibObject)
 struct ribObject_t *pxRibFindObject(string_t ucRibObjectName)
 {
 
-    ESP_LOGI(TAG_RIB, "Looking for the object %s in the RIB Object Table", ucRibObjectName);
+    ESP_LOGD(TAG_RIB, "Looking for the object %s in the RIB Object Table", ucRibObjectName);
 
     BaseType_t x = 0;
     struct ribObject_t *pxRibObject;
@@ -60,14 +60,14 @@ struct ribObject_t *pxRibFindObject(string_t ucRibObjectName)
             ESP_LOGD(TAG_RIB, "RibObj->ucObjName'%s', ucRibObjectName:'%s'", pxRibObject->ucObjName, ucRibObjectName);
             if (!strcmp(pxRibObject->ucObjName, ucRibObjectName))
             {
-                ESP_LOGI(TAG_RIB, "RibObj founded '%p', '%s'", pxRibObject, pxRibObject->ucObjName);
+                ESP_LOGD(TAG_RIB, "RibObj founded '%p', '%s'", pxRibObject, pxRibObject->ucObjName);
 
                 return pxRibObject;
                 break;
             }
         }
     }
-    ESP_LOGI(TAG_IPCPMANAGER, "RibObj '%s' not founded", ucRibObjectName);
+    ESP_LOGD(TAG_IPCPMANAGER, "RibObj '%s' not founded", ucRibObjectName);
 
     return NULL;
 }
@@ -75,7 +75,7 @@ struct ribObject_t *pxRibFindObject(string_t ucRibObjectName)
 struct ribObject_t *pxRibCreateObject(string_t ucObjName, long ulObjInst,
                                       string_t ucDisplayableValue, string_t ucObjClass, eObjectType_t eObjType)
 {
-    ESP_LOGI(TAG_RIB, "Creating object %s into the RIB", ucObjName);
+    ESP_LOGD(TAG_RIB, "Creating object %s into the RIB", ucObjName);
     struct ribObject_t *pxObj = pvPortMalloc(sizeof(*pxObj));
     struct ribObjOps_t *pxObjOps = pvPortMalloc(sizeof(*pxObjOps));
 
@@ -120,7 +120,7 @@ struct ribObject_t *pxRibCreateObject(string_t ucObjName, long ulObjInst,
 
     /*Add object into the table*/
     vRibAddObjectEntry(pxObj);
-    ESP_LOGI(TAG_RIB, "RIB object created: %s, %p", pxObj->ucObjName, pxObj);
+    ESP_LOGD(TAG_RIB, "RIB object created: %s, %p", pxObj->ucObjName, pxObj);
 
     return pxObj;
 }

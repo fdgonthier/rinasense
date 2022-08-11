@@ -67,13 +67,13 @@ BaseType_t xIpcManagerInit(ipcManager_t *pxIpcManager)
 
     if (!listLIST_IS_INITIALISED(&pxIpcManager->xShimInstancesList))
     {
-        ESP_LOGI(TAG_IPCPMANAGER, "IpcpFactoriesList was not Initialized properly");
+        ESP_LOGD(TAG_IPCPMANAGER, "IpcpFactoriesList was not Initialized properly");
         return pdFALSE;
     }
 
     if (xTest())
     {
-        ESP_LOGI(TAG_IPCPMANAGER, "INIT Ribd");
+        ESP_LOGD(TAG_IPCPMANAGER, "INIT Ribd");
     }
 
     return pdTRUE;
@@ -120,7 +120,7 @@ ipcpInstance_t *pxIpcManagerFindInstanceById(ipcpInstanceId_t xIpcpId)
             // ESP_LOGE(TAG_IPCPMANAGER, "Instance: %p, Id: %d", xInstanceTable[x].pxIpcpInstance, xInstanceTable[x].xIpcpId);
             if (xInstanceTable[x].xIpcpId == xIpcpId)
             {
-                ESP_LOGI(TAG_IPCPMANAGER, "Instance founded '%p'", xInstanceTable[x].pxIpcpInstance);
+                ESP_LOGD(TAG_IPCPMANAGER, "Instance founded '%p'", xInstanceTable[x].pxIpcpInstance);
                 return xInstanceTable[x].pxIpcpInstance;
                 break;
             }
@@ -148,7 +148,7 @@ static ipcpInstance_t *pxIpcManagerFindInstanceByType(ipcpInstanceType_t xType)
         {
             if (xInstanceTable[x].pxIpcpType == xType)
             {
-                // ESP_LOGI(TAG_IPCPMANAGER, "Instance founded '%p'", xInstanceTable [ x ].pxIpcpInstance);
+                // ESP_LOGD(TAG_IPCPMANAGER, "Instance founded '%p'", xInstanceTable [ x ].pxIpcpInstance);
                 return xInstanceTable[x].pxIpcpInstance;
                 break;
             }
@@ -169,14 +169,14 @@ void vIcpManagerEnrollmentFlowRequest(ipcpInstance_t *pxShimInstance, portId_t x
 
     if (pxShimInstance->pxOps->flowAllocateRequest == NULL)
     {
-        ESP_LOGI(TAG_IPCPNORMAL, "There is not Flow Allocate Request API");
+        ESP_LOGD(TAG_IPCPNORMAL, "There is not Flow Allocate Request API");
     }
     if (pxShimInstance->pxOps->flowAllocateRequest(xN1PortId,
                                                    pxIPCPName,
                                                    destinationInfo,
                                                    pxShimInstance->pxData))
     {
-        ESP_LOGI(TAG_IPCPNORMAL, "Flow Request processed by the Shim sucessfully");
+        ESP_LOGD(TAG_IPCPNORMAL, "Flow Request processed by the Shim sucessfully");
         return pdTRUE;
     }
 
@@ -198,7 +198,7 @@ void vIpcManagerRINAPackettHandler(struct ipcpNormalData_t *pxData, NetworkBuffe
 
     if (!xNormalDuEnqueue(pxData, 1, pxMessagePDU)) // must change this
     {
-        ESP_LOGI(TAG_IPCPMANAGER, "Drop frame because there is not enough memory space");
+        ESP_LOGD(TAG_IPCPMANAGER, "Drop frame because there is not enough memory space");
         xDuDestroy(pxMessagePDU);
     }
 }

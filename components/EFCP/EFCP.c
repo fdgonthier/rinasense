@@ -98,7 +98,7 @@ static struct efcp_t *pxEfcpCreate(void)
 
         pxEfcpInstance->pxDelim = NULL;
 
-        ESP_LOGI(TAG_EFCP, "EFCP Instance %pK initialized successfully", pxEfcpInstance);
+        ESP_LOGD(TAG_EFCP, "EFCP Instance %pK initialized successfully", pxEfcpInstance);
 
         return pxEfcpInstance;
 }
@@ -154,7 +154,7 @@ static BaseType_t xEfcpDestroy(struct efcp_t *pxInstance)
         /*robject_del(&instance->robj);*/
         vPortFree(pxInstance);
 
-        ESP_LOGI(TAG_EFCP, "EFCP instance %pK finalized successfully", pxInstance);
+        ESP_LOGD(TAG_EFCP, "EFCP instance %pK finalized successfully", pxInstance);
 
         return pdTRUE;
 }
@@ -252,7 +252,7 @@ struct efcpContainer_t *pxEfcpContainerCreate(void)
                 return NULL;
         }
 
-        ESP_LOGI(TAG_EFCP, "EFCP container instance %p created", pxEfcpContainer);
+        ESP_LOGD(TAG_EFCP, "EFCP container instance %p created", pxEfcpContainer);
 
         return pxEfcpContainer;
 }
@@ -304,7 +304,7 @@ BaseType_t xEfcpContainerReceive(struct efcpContainer_t *pxEfcpContainer, cepId_
         {
                 // spin_unlock_bh(&container->lock);
                 xDuDestroy(pxDu);
-                ESP_LOGI(TAG_EFCP, "EFCP already deallocated");
+                ESP_LOGD(TAG_EFCP, "EFCP already deallocated");
                 return pdTRUE;
         }
 
@@ -502,14 +502,14 @@ BaseType_t xEfcpConnectionUpdate(struct efcpContainer_t *pxContainer,
         }
         pxEfcp->pxConnection->xDestinationCepId = to;
 
-        ESP_LOGI(TAG_EFCP, "Connection updated");
-        ESP_LOGI(TAG_EFCP, "  Source address:     %d",
+        ESP_LOGD(TAG_EFCP, "Connection updated");
+        ESP_LOGD(TAG_EFCP, "  Source address:     %d",
                  pxEfcp->pxConnection->xSourceAddress);
-        ESP_LOGI(TAG_EFCP, "  Destination address %d",
+        ESP_LOGD(TAG_EFCP, "  Destination address %d",
                  pxEfcp->pxConnection->xDestinationAddress);
-        ESP_LOGI(TAG_EFCP, "  Destination cep id: %d",
+        ESP_LOGD(TAG_EFCP, "  Destination cep id: %d",
                  pxEfcp->pxConnection->xDestinationCepId);
-        ESP_LOGI(TAG_EFCP, "  Source cep id:      %d",
+        ESP_LOGD(TAG_EFCP, "  Source cep id:      %d",
                  pxEfcp->pxConnection->xSourceCepId);
 
         return pdTRUE;
@@ -521,7 +521,7 @@ BaseType_t xEfcpConnectionDestroy(struct efcpContainer_t *pxEfcpContainer,
         struct efcp_t *pxEfcp;
         // BaseType_t retval;
 
-        ESP_LOGI(TAG_EFCP, "EFCP connection destroy called");
+        ESP_LOGD(TAG_EFCP, "EFCP connection destroy called");
 
         /* FIXME: should wait 3*delta-t before destroying the connection */
 
@@ -589,7 +589,7 @@ cepId_t xEfcpConnectionCreate(struct efcpContainer_t *pxEfcpContainer,
                               struct dtcpConfig_t *pxDtcpCfg)
 {
 
-        ESP_LOGI(TAG_EFCP, "Creating a new EFCP Connection");
+        ESP_LOGD(TAG_EFCP, "Creating a new EFCP Connection");
 
         struct efcp_t *pxEfcp;
         connection_t *pxConnection = NULL;
@@ -764,9 +764,9 @@ cepId_t xEfcpConnectionCreate(struct efcpContainer_t *pxEfcpContainer,
                 r  = dtcp_data_retransmit_max(dtcp_cfg) * tr;
         }
 
-        ESP_LOGI(TAG_EFCP,"DT SV initialized with:");
-        ESP_LOGI(TAG_EFCP,"  MFPS: %d, MFSS: %d",   mfps, mfss);
-        ESP_LOGI(TAG_EFCP,"  A: %d, R: %d, TR: %d", a, r, tr);
+        ESP_LOGD(TAG_EFCP,"DT SV initialized with:");
+        ESP_LOGD(TAG_EFCP,"  MFPS: %d, MFSS: %d",   mfps, mfss);
+        ESP_LOGD(TAG_EFCP,"  A: %d, R: %d, TR: %d", a, r, tr);
 
         if (dtp_sv_init(efcp->dtp, dtcp_rtx_ctrl(dtcp_cfg),
                         dtcp_window_based_fctrl(dtcp_cfg),
@@ -789,7 +789,7 @@ cepId_t xEfcpConnectionCreate(struct efcpContainer_t *pxEfcpContainer,
                 return cep_id_bad();
         }
 
-        ESP_LOGI(TAG_EFCP, "Connection created ("
+        ESP_LOGD(TAG_EFCP, "Connection created ("
                            "Source address %d,"
                            "Destination address %d, "
                            "Destination cep-id %d, "
@@ -873,7 +873,7 @@ BaseType_t xEfcpImapAdd(cepId_t xCepId, struct efcp_t *pxEfcp)
                         xEfcpImapTable[x].xCepIdKey = xImapEntry.xCepIdKey;
                         xEfcpImapTable[x].xEfcpValue = xImapEntry.xEfcpValue;
                         xEfcpImapTable[x].ucValid = xImapEntry.ucValid;
-                        ESP_LOGI(TAG_EFCP, "EFCP Entry successful");
+                        ESP_LOGD(TAG_EFCP, "EFCP Entry successful");
                         return pdTRUE;
 
                         // break;

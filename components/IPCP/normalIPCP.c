@@ -127,7 +127,7 @@ static ipcpInstance_t *prvNormalIPCPFindInstance(struct ipcpFactoryData_t *pxFac
 
                         if (pxInstance->xType == xType)
                         {
-                                // ESP_LOGI(TAG_IPCPMANAGER, "Instance founded %p, Type: %d", pxInstance, pxInstance->xType);
+                                // ESP_LOGD(TAG_IPCPMANAGER, "Instance founded %p, Type: %d", pxInstance, pxInstance->xType);
                                 return pxInstance;
                         }
                 }
@@ -145,7 +145,7 @@ static ipcpInstance_t *prvNormalIPCPFindInstance(struct ipcpFactoryData_t *pxFac
 static struct normalFlow_t *prvNormalFindFlow(struct ipcpInstanceData_t *pxData,
                                               portId_t xPortId)
 {
-        ESP_LOGI(TAG_IPCPNORMAL, "Finding a Flow in the normal IPCP list");
+        ESP_LOGD(TAG_IPCPNORMAL, "Finding a Flow in the normal IPCP list");
 
         struct normalFlow_t *pxFlow;
 
@@ -156,7 +156,7 @@ static struct normalFlow_t *prvNormalFindFlow(struct ipcpInstanceData_t *pxData,
 
         if (listLIST_IS_EMPTY(&(pxIpcpData->xFlowsList)) == pdTRUE)
         {
-                ESP_LOGI(TAG_IPCPNORMAL, "Flow list is empty");
+                ESP_LOGD(TAG_IPCPNORMAL, "Flow list is empty");
                 return NULL;
         }
 
@@ -180,14 +180,14 @@ static struct normalFlow_t *prvNormalFindFlow(struct ipcpInstanceData_t *pxData,
                 if (pxFlow && pxFlow->xPortId == xPortId)
                 {
 
-                        // ESP_LOGI(TAG_IPCPNORMAL, "Flow founded %p, portID: %d, portState:%d", pxFlow, pxFlow->xPortId, pxFlow->eState);
+                        // ESP_LOGD(TAG_IPCPNORMAL, "Flow founded %p, portID: %d, portState:%d", pxFlow, pxFlow->xPortId, pxFlow->eState);
                         return pxFlow;
                 }
 
                 pxListItem = listGET_NEXT(pxListItem);
         }
 
-        ESP_LOGI(TAG_IPCPNORMAL, "Flow not founded");
+        ESP_LOGD(TAG_IPCPNORMAL, "Flow not founded");
         return NULL;
 }
 
@@ -195,7 +195,7 @@ BaseType_t xNormalDuWrite(struct ipcpInstanceData_t *pxData,
                           portId_t xAppPortId,
                           NetworkBufferDescriptor_t *pxNetworkBuffer)
 {
-        ESP_LOGI(TAG_IPCPNORMAL, "Writing Data into the IPCP Normal");
+        ESP_LOGD(TAG_IPCPNORMAL, "Writing Data into the IPCP Normal");
         struct du_t *pxDu;
         struct normalFlow_t *pxFlow;
 
@@ -244,7 +244,7 @@ BaseType_t xNormalFlowPrebind(struct ipcpNormalData_t *pxData,
 
         struct normalFlow_t *pxFlow;
 
-        ESP_LOGI(TAG_IPCPNORMAL, "Binding the flow with port id:%d", pxFlowHandle->xPortId);
+        ESP_LOGD(TAG_IPCPNORMAL, "Binding the flow with port id:%d", pxFlowHandle->xPortId);
 
         if (!pxData)
         {
@@ -266,7 +266,7 @@ BaseType_t xNormalFlowPrebind(struct ipcpNormalData_t *pxData,
         /*KFA should be the user. Implement this when the KFA is implemented*/
         // pxFlow->pxUserIpcp = kfa;
 
-        ESP_LOGI(TAG_IPCPNORMAL, "Flow: %p portID: %d portState: %d", pxFlow, pxFlow->xPortId, pxFlow->eState);
+        ESP_LOGD(TAG_IPCPNORMAL, "Flow: %p portID: %d portState: %d", pxFlow, pxFlow->xPortId, pxFlow->eState);
         vListInitialiseItem(&(pxFlow->xFlowListItem));
         listSET_LIST_ITEM_OWNER(&(pxFlow->xFlowListItem), (void *)pxFlow);
         vListInsert(&(pxData->xFlowsList), &(pxFlow->xFlowListItem));
@@ -366,7 +366,7 @@ BaseType_t xNormalFlowBinding(struct ipcpNormalData_t *pxUserData,
 
 BaseType_t xNormalTest(ipcpInstance_t *pxNormalInstance, ipcpInstance_t *pxN1Ipcp)
 {
-        ESP_LOGI(TAG_IPCPNORMAL, "Test");
+        ESP_LOGD(TAG_IPCPNORMAL, "Test");
 
         portId_t xId = 1;
 
@@ -382,30 +382,30 @@ BaseType_t xNormalTest(ipcpInstance_t *pxNormalInstance, ipcpInstance_t *pxN1Ipc
         xBufferSize = strlen(ucStringTest);
         pxNetworkBuffer = pxGetNetworkBufferWithDescriptor(xBufferSize, (TickType_t)0U); // sizeof length DataUser packet.
 
-        ESP_LOGI(TAG_IPCPNORMAL, "BufferSize DU:%d", xBufferSize);
+        ESP_LOGD(TAG_IPCPNORMAL, "BufferSize DU:%d", xBufferSize);
 
         /*Copy the string to the Buffer Network*/
         memcpy(pxNetworkBuffer->pucEthernetBuffer, ucStringTest, xBufferSize);
 
         pxNetworkBuffer->xDataLength = xBufferSize;
 
-        // ESP_LOGI(TAG_IPCPNORMALNORMAL, "Size of NetworkBuffer: %d",pxNetworkBuffer->xDataLength);
+        // ESP_LOGD(TAG_IPCPNORMALNORMAL, "Size of NetworkBuffer: %d",pxNetworkBuffer->xDataLength);
         /*Integrate the buffer to the Du structure*/
         testDu = pvPortMalloc(sizeof(*testDu));
         testDu->pxNetworkBuffer = pxNetworkBuffer;
-        ESP_LOGI(TAG_IPCPNORMAL, "Du Filled");
+        ESP_LOGD(TAG_IPCPNORMAL, "Du Filled");
 
-        ESP_LOGI(TAG_IPCPNORMAL, "Normal Instance: %p", pxNormalInstance);
+        ESP_LOGD(TAG_IPCPNORMAL, "Normal Instance: %p", pxNormalInstance);
 
         /*if (xNormalFlowBinding(pxNormalInstance->pxData, xId, pxN1Ipcp))
         {
-                ESP_LOGI(TAG_IPCPNORMAL, "FlowBinding");
+                ESP_LOGD(TAG_IPCPNORMAL, "FlowBinding");
         }*/
 
         /*Call to Normalwrite function to send data*/
         if (xNormalDuWrite(pxNormalInstance->pxData, xId, testDu))
         {
-                ESP_LOGI(TAG_IPCPNORMAL, "Wrote packet on the shimWiFi");
+                ESP_LOGD(TAG_IPCPNORMAL, "Wrote packet on the shimWiFi");
                 return pdTRUE;
         }
 
@@ -527,7 +527,7 @@ BaseType_t xNormalMgmtDuWrite(struct rmt_t *pxRmt, portId_t xPortId, struct du_t
 {
         ssize_t sbytes;
 
-        ESP_LOGI(TAG_IPCPNORMAL, "Passing SDU to be written to N-1 port %d ", xPortId);
+        ESP_LOGD(TAG_IPCPNORMAL, "Passing SDU to be written to N-1 port %d ", xPortId);
 
         if (!pxRmt)
         {
@@ -603,7 +603,7 @@ BaseType_t xNormalMgmtDuPost(struct ipcpNormalData_t *pxData, portId_t xPortId, 
         /*Send to the RIB Daemon*/
         if (!xRibdProcessLayerManagementPDU(pxData, xPortId, pxDu))
         {
-                ESP_LOGI(TAG_IPCPNORMAL, "Was not possible to process el Management PDU");
+                ESP_LOGD(TAG_IPCPNORMAL, "Was not possible to process el Management PDU");
                 return pdFALSE;
         }
 
@@ -664,11 +664,11 @@ BaseType_t xNormalRegistering(ipcpInstance_t *pxShimInstance, name_t *pxDifName,
 
         if (pxShimInstance->pxOps->applicationRegister == NULL)
         {
-                ESP_LOGI(TAG_IPCPNORMAL, "There is not Application Register API");
+                ESP_LOGD(TAG_IPCPNORMAL, "There is not Application Register API");
         }
         if (pxShimInstance->pxOps->applicationRegister(pxShimInstance->pxData, pxName, pxDifName))
         {
-                ESP_LOGI(TAG_IPCPNORMAL, "Normal Instance Registered into the Shim");
+                ESP_LOGD(TAG_IPCPNORMAL, "Normal Instance Registered into the Shim");
                 return pdTRUE;
         }
 
@@ -690,14 +690,14 @@ BaseType_t xNormalFlowAllocationRequest(ipcpInstance_t *pxInstanceFrom, ipcpInst
 
         if (pxInstanceTo->pxOps->flowAllocateRequest == NULL)
         {
-                ESP_LOGI(TAG_IPCPNORMAL, "There is not Flow Allocate Request API");
+                ESP_LOGD(TAG_IPCPNORMAL, "There is not Flow Allocate Request API");
         }
         if (pxInstanceTo->pxOps->flowAllocateRequest(xShimPortId,
                                                      pxInstanceFrom,                                                     pxInstanceTo->pxData->pxName,
                                                      destinationInfo,
                                                      pxInstanceTo->pxData))
         {
-                ESP_LOGI(TAG_IPCPNORMAL, "Flow Request Sended");
+                ESP_LOGD(TAG_IPCPNORMAL, "Flow Request Sended");
                 return pdTRUE;
         }
 
@@ -735,7 +735,7 @@ BaseType_t xNormalUpdateFlowStatus(portId_t xPortId, eNormalFlowState_t eNewFlow
                 return pdFALSE;
         }
         pxFlow->eState = eNewFlowstate;
-        ESP_LOGI(TAG_IPCPNORMAL, "Flow state updated");
+        ESP_LOGD(TAG_IPCPNORMAL, "Flow state updated");
 
         return pdTRUE;
 }
@@ -752,7 +752,7 @@ BaseType_t xNormalIsFlowAllocated(portId_t xPortId)
         }
         if (pxFlow->eState == ePORT_STATE_ALLOCATED)
         {
-                ESP_LOGI(TAG_IPCPNORMAL, "Flow status: Allocated");
+                ESP_LOGD(TAG_IPCPNORMAL, "Flow status: Allocated");
                 return pdTRUE;
         }
 
@@ -806,7 +806,7 @@ BaseType_t xNormalConnectionUpdate(portId_t xAppPortId, cepId_t xSrcCepId, cepId
                 return pdFALSE;
         }
         pxFlow->eState = ePORT_STATE_ALLOCATED;
-        ESP_LOGI(TAG_IPCPNORMAL, "Flow state updated");
+        ESP_LOGD(TAG_IPCPNORMAL, "Flow state updated");
 
         return pdTRUE;
 }
@@ -817,7 +817,7 @@ static BaseType_t prvRemoveCepIdFromFlow(struct normalFlow_t *pxFlow,
 #if 0
         
 
-        ESP_LOGI(TAG_IPCPNORMAL, "Finding a Flow in the normal IPCP list");
+        ESP_LOGD(TAG_IPCPNORMAL, "Finding a Flow in the normal IPCP list");
 
         struct normalFlow_t *pxFlow;
 
@@ -828,7 +828,7 @@ static BaseType_t prvRemoveCepIdFromFlow(struct normalFlow_t *pxFlow,
 
         if (listLIST_IS_EMPTY(&(pxFlow->xCepIdsList)) == pdTRUE)
         {
-                ESP_LOGI(TAG_IPCPNORMAL, "Flow CepIds list is empty");
+                ESP_LOGD(TAG_IPCPNORMAL, "Flow CepIds list is empty");
                 return NULL;
         }
 
@@ -852,14 +852,14 @@ static BaseType_t prvRemoveCepIdFromFlow(struct normalFlow_t *pxFlow,
                 if (pxFlow && pxFlow->xActive == xCepId)
                 {
 
-                        // ESP_LOGI(TAG_IPCPNORMAL, "Flow founded %p, portID: %d, portState:%d", pxFlow, pxFlow->xPortId, pxFlow->eState);
+                        // ESP_LOGD(TAG_IPCPNORMAL, "Flow founded %p, portID: %d, portState:%d", pxFlow, pxFlow->xPortId, pxFlow->eState);
                         return pxFlow;
                 }
 
                 pxListItem = listGET_NEXT(pxListItem);
         }
 
-        ESP_LOGI(TAG_IPCPNORMAL, "Flow not founded");
+        ESP_LOGD(TAG_IPCPNORMAL, "Flow not founded");
         return NULL;
 
         struct cep_ids_entry *pos, *next;
@@ -881,7 +881,7 @@ static BaseType_t prvRemoveCepIdFromFlow(struct normalFlow_t *pxFlow,
 static struct normalFlow_t *prvFindFlowCepid(cepId_t xCepId)
 {
 
-        ESP_LOGI(TAG_IPCPNORMAL, "Finding a Flow in the normal IPCP list");
+        ESP_LOGD(TAG_IPCPNORMAL, "Finding a Flow in the normal IPCP list");
 
         struct normalFlow_t *pxFlow;
 
@@ -892,7 +892,7 @@ static struct normalFlow_t *prvFindFlowCepid(cepId_t xCepId)
 
         if (listLIST_IS_EMPTY(&(pxIpcpData->xFlowsList)) == pdTRUE)
         {
-                ESP_LOGI(TAG_IPCPNORMAL, "Flow list is empty");
+                ESP_LOGD(TAG_IPCPNORMAL, "Flow list is empty");
                 return NULL;
         }
 
@@ -916,14 +916,14 @@ static struct normalFlow_t *prvFindFlowCepid(cepId_t xCepId)
                 if (pxFlow && pxFlow->xActive == xCepId)
                 {
 
-                        // ESP_LOGI(TAG_IPCPNORMAL, "Flow founded %p, portID: %d, portState:%d", pxFlow, pxFlow->xPortId, pxFlow->eState);
+                        // ESP_LOGD(TAG_IPCPNORMAL, "Flow founded %p, portID: %d, portState:%d", pxFlow, pxFlow->xPortId, pxFlow->eState);
                         return pxFlow;
                 }
 
                 pxListItem = listGET_NEXT(pxListItem);
         }
 
-        ESP_LOGI(TAG_IPCPNORMAL, "Flow not founded");
+        ESP_LOGD(TAG_IPCPNORMAL, "Flow not founded");
         return NULL;
 }
 

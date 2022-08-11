@@ -76,18 +76,18 @@ void app_main(void)
 
     vTaskDelay(1000);
 
-    ESP_LOGI(TAG_APP, "----------- Requesting a Flow ----- ");
+    ESP_LOGD(TAG_APP, "----------- Requesting a Flow ----- ");
 
     xAppPortId = RINA_flow_alloc(DIF, CLIENT, SERVER, xFlowSpec, Flags);
 
-    ESP_LOGI(TAG_APP, "Flow Port id: %d ", xAppPortId);
+    ESP_LOGD(TAG_APP, "Flow Port id: %d ", xAppPortId);
 
     time_start = esp_timer_get_time();
     t_start = xTaskGetTickCount();
 
     if (xAppPortId != -1)
     {
-        ESP_LOGI(TAG_APP, "Pinging %s with %d bytes of data: ", SERVER, PING_SIZE);
+        ESP_LOGD(TAG_APP, "Pinging %s with %d bytes of data: ", SERVER, PING_SIZE);
         while (i < NUMBER_OF_PINGS)
         {
 
@@ -102,7 +102,7 @@ void app_main(void)
                 break;
             }
 
-            ESP_LOGI(TAG_APP, "Sended: %d", uxTxBytes);
+            ESP_LOGD(TAG_APP, "Sended: %d", uxTxBytes);
 
             uxRxBytes = 0;
 
@@ -124,8 +124,8 @@ void app_main(void)
 
                     ns = (t2 - t1) / portTICK_RATE_MS;
 
-                    // ESP_LOGI(TAG_APP, "%d bytes from server: rtt = %.3f ms\n", uxRxBytes, ns);
-                    ESP_LOGI(TAG_APP, "%d bytes from server: rtt = %d us\n", uxRxBytes, time_delta);
+                    // ESP_LOGD(TAG_APP, "%d bytes from server: rtt = %.3f ms\n", uxRxBytes, ns);
+                    ESP_LOGI(TAG_APP, "%d bytes from server: rtt = %d ms\n", uxRxBytes, time_delta / 1000);
                     RTT[i] = time_delta;
                 }
             }

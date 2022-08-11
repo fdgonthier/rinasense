@@ -35,7 +35,7 @@ static rmtN1Port_t *pxRmtN1PortCreate(portId_t xId, ipcpInstance_t *pxN1Ipcp);
 static rmtN1Port_t *pxRmtN1PortCreate(portId_t xId, ipcpInstance_t *pxN1Ipcp)
 {
 
-	ESP_LOGI(TAG_RMT, "Creating a N-1 Port in the RMT");
+	ESP_LOGD(TAG_RMT, "Creating a N-1 Port in the RMT");
 	rmtN1Port_t *pxTmp;
 
 	// configASSERT(IS_PORT_ID_OK(xId));
@@ -57,7 +57,7 @@ static rmtN1Port_t *pxRmtN1PortCreate(portId_t xId, ipcpInstance_t *pxN1Ipcp)
 	pxTmp->xStats.rxPdus = 0;
 	pxTmp->xStats.rxBytes = 0;
 
-	ESP_LOGI(TAG_RMT, "N-1 port %pK created successfully (port-id = %d)", pxTmp, xId);
+	ESP_LOGD(TAG_RMT, "N-1 port %pK created successfully (port-id = %d)", pxTmp, xId);
 
 	return pxTmp;
 }
@@ -69,7 +69,7 @@ BaseType_t xRmtN1PortBind(rmt_t *pxRmtInstance, portId_t xId, ipcpInstance_t *px
 
 BaseType_t xRmtN1PortBind(rmt_t *pxRmtInstance, portId_t xId, ipcpInstance_t *pxN1Ipcp)
 {
-	ESP_LOGI(TAG_RMT, "Binding the RMT with the port id:%d", xId);
+	ESP_LOGD(TAG_RMT, "Binding the RMT with the port id:%d", xId);
 
 	rmtN1Port_t *pxTmp;
 	// struct rmt_ps *ps;
@@ -124,7 +124,7 @@ BaseType_t xRmtN1PortBind(rmt_t *pxRmtInstance, portId_t xId, ipcpInstance_t *px
 
 	xPortIdTable[0].pxPortN1 = pxTmp;
 
-	ESP_LOGI(TAG_RMT, "Added send queue to rmt instance %pK for port-id %d", pxRmtInstance, xId);
+	ESP_LOGD(TAG_RMT, "Added send queue to rmt instance %pK for port-id %d", pxRmtInstance, xId);
 
 	/*Associate the DIF name with the SDUP configuration, SDUP will not be used for the moment*/
 
@@ -184,7 +184,7 @@ BaseType_t xRmtPduIsAddressedToMe(rmt_t *pxRmt, address_t xAddress)
 		ESP_LOGE(TAG_RMT, "Address to evaluate: %d, Address founded:%d", xAddress, pxAddr->xAddress);
 		if (pxAddr->xAddress == xAddress)
 		{
-			ESP_LOGI(TAG_RMT, "Address to me founded!");
+			ESP_LOGD(TAG_RMT, "Address to me founded!");
 			return pdTRUE;
 		}
 		pxListItem = listGET_NEXT(pxListItem);
@@ -247,7 +247,7 @@ static BaseType_t xRmtProcessDtPdu(rmt_t *pxRmt, portId_t xPortId, struct du_t *
 		return pdFALSE;
 	}
 
-	ESP_LOGI(TAG_RMT, "process_dt_pdu internally finished");
+	ESP_LOGD(TAG_RMT, "process_dt_pdu internally finished");
 
 	return pdTRUE;
 }
@@ -256,7 +256,7 @@ BaseType_t xRmtReceive(struct ipcpNormalData_t *pxData, struct du_t *pxDu, portI
 
 BaseType_t xRmtReceive(struct ipcpNormalData_t *pxData, struct du_t *pxDu, portId_t xFrom)
 {
-	ESP_LOGI(TAG_RMT, "RMT has received a RINA packet from the port %d", xFrom);
+	ESP_LOGD(TAG_RMT, "RMT has received a RINA packet from the port %d", xFrom);
 
 	pduType_t xPduType;
 	address_t xDstAddr;
@@ -312,7 +312,7 @@ BaseType_t xRmtReceive(struct ipcpNormalData_t *pxData, struct du_t *pxDu, portI
 		return pdFALSE;
 	}
 
-	ESP_LOGI(TAG_RMT, "DU Decap sucessfuly");
+	ESP_LOGD(TAG_RMT, "DU Decap sucessfuly");
 
 	xPduType = pxDu->pxPci->xType;
 	xDstAddr = pxDu->pxPci->xDestination;
@@ -347,7 +347,7 @@ BaseType_t xRmtReceive(struct ipcpNormalData_t *pxData, struct du_t *pxDu, portI
 		case PDU_TYPE_ACK_AND_FC:
 		case PDU_TYPE_RENDEZVOUS:
 		case PDU_TYPE_DT:
-			ESP_LOGI(TAG_RMT, "DT PDU!!!");
+			ESP_LOGD(TAG_RMT, "DT PDU!!!");
 			/*
 			 * (FUTURE)
 			 *
@@ -370,7 +370,7 @@ BaseType_t xRmtReceive(struct ipcpNormalData_t *pxData, struct du_t *pxDu, portI
 			return xRmtProcessMgmtPdu(pxData, xFrom, pxDu);
 		else
 		{
-			ESP_LOGI(TAG_RMT, "PDU is not for me");
+			ESP_LOGD(TAG_RMT, "PDU is not for me");
 			return pdFALSE;
 		}
 	}
@@ -384,9 +384,9 @@ static BaseType_t xRmtN1PortWriteDu(rmt_t *pxRmt,
 	BaseType_t ret;
 	ssize_t bytes = pxDu->pxNetworkBuffer->xDataLength;
 
-	ESP_LOGI(TAG_RMT, "Gonna send SDU to port-id %d", pxN1Port->xPortId);
+	ESP_LOGD(TAG_RMT, "Gonna send SDU to port-id %d", pxN1Port->xPortId);
 	ret = pxN1Port->pxN1Ipcp->pxOps->duWrite(pxN1Port->pxN1Ipcp->pxData, pxN1Port->xPortId, pxDu, false);
-	// ESP_LOGI(TAG_RMT, "xRmtN1PortWriteDu ret:%d", ret);
+	// ESP_LOGD(TAG_RMT, "xRmtN1PortWriteDu ret:%d", ret);
 
 	if (!ret)
 		return pdFALSE;
@@ -404,7 +404,7 @@ static BaseType_t xRmtN1PortWriteDu(rmt_t *pxRmt,
 
 		pxN1Port->pxPendingDu = pxDu;
 		pxN1Port->xStats.plen++;
-		ESP_LOGI(TAG_RMT, "xRmtN1PortWriteDu:Pending");
+		ESP_LOGD(TAG_RMT, "xRmtN1PortWriteDu:Pending");
 
 		if (pxN1Port->eState == eN1_PORT_STATE_DO_NOT_DISABLE)
 		{
@@ -425,7 +425,7 @@ BaseType_t xRmtSendPortId(rmt_t *pxRmtInstance,
 						  struct du_t *pxDu)
 {
 
-	ESP_LOGI(TAG_RMT, "Processing DU to be send");
+	ESP_LOGD(TAG_RMT, "Processing DU to be send");
 
 	rmtN1Port_t *pxN1Port;
 	// rmtPs_t *ps;//???
@@ -490,7 +490,7 @@ BaseType_t xRmtSendPortId(rmt_t *pxRmtInstance,
 			ESP_LOGE(TAG_RMT, "Wrong behaviour of the policy");
 			xDuDestroy(pxDu);
 			pxN1Port->xStats.errPdus++;
-			ESP_LOGI(TAG_RMT, "Policy should have enqueue, returned SEND");
+			ESP_LOGD(TAG_RMT, "Policy should have enqueue, returned SEND");
 			ret = pdFALSE;
 			break;
 		}
@@ -498,7 +498,7 @@ BaseType_t xRmtSendPortId(rmt_t *pxRmtInstance,
 		pxN1Port->uxBusy = pdTRUE;
 
 		// n1_port_unlock(n1_port);
-		ESP_LOGI(TAG_RMT, "PDU ready to be sent, no need to enqueue");
+		ESP_LOGD(TAG_RMT, "PDU ready to be sent, no need to enqueue");
 		ret = xRmtN1PortWriteDu(pxRmtInstance, pxN1Port, pxDu);
 		/*FIXME LB: This is just horrible, needs to be rethinked */
 		// N1_port_lock(n1_port);
@@ -545,7 +545,7 @@ BaseType_t xRmtSend(rmt_t *pxRmtInstance,
 	}
 
 	if (pxRmtInstance. instance->cache.count == 0) {
-		ESP_LOGI(TAG_RMT, "No NHOP for this PDU ...");
+		ESP_LOGD(TAG_RMT, "No NHOP for this PDU ...");
 		xDuDestroy(pxDu);
 		return pdFALSE;
 	}
@@ -608,7 +608,7 @@ rmt_t *pxRmtCreate(struct efcpContainer_t *pxEfcpc)
 	// tmp->n1_ports = n1pmap_create(&tmp->robj);
 	if (!pxRmtTmp->pxN1Port)
 	{
-		ESP_LOGI(TAG_RMT, "Failed to create N-1 ports map");
+		ESP_LOGD(TAG_RMT, "Failed to create N-1 ports map");
 		// rmt_destroy(tmp);
 		return NULL;
 	}
@@ -623,6 +623,6 @@ rmt_t *pxRmtCreate(struct efcpContainer_t *pxEfcpc)
 			 send_worker,
 			 (unsigned long) tmp);*/
 
-	ESP_LOGI(TAG_RMT, "Instance %pK initialized successfully", pxRmtTmp);
+	ESP_LOGD(TAG_RMT, "Instance %pK initialized successfully", pxRmtTmp);
 	return pxRmtTmp;
 }

@@ -45,7 +45,7 @@ void vRstrNameFini(name_t *n)
                 n->pcEntityInstance = NULL;
         }
 
-        ESP_LOGI(TAG_IPCPMANAGER, "Name at %pK finalized successfully", n);
+        ESP_LOGD(TAG_IPCPMANAGER, "Name at %pK finalized successfully", n);
 }
 
 void vRstrNameDestroy(name_t *pxName)
@@ -56,7 +56,7 @@ void vRstrNameDestroy(name_t *pxName)
 
         vPortFree(pxName);
 
-        ESP_LOGI(TAG_IPCPMANAGER, "Name at %pK destroyed successfully", pxName);
+        ESP_LOGD(TAG_IPCPMANAGER, "Name at %pK destroyed successfully", pxName);
 }
 
 void vRstrNameFree(name_t *xName)
@@ -148,7 +148,7 @@ static BaseType_t xRstrNameCpy(const name_t *pxSrc, name_t *pxDst)
         if (!pxSrc || !pxDst)
                 return pdFALSE;
 
-        ESP_LOGI(TAG_IPCPMANAGER, "Copying name %pK into %pK", pxSrc, pxDst);
+        ESP_LOGD(TAG_IPCPMANAGER, "Copying name %pK into %pK", pxSrc, pxDst);
 
         vRstrNameFini(pxDst);
 
@@ -164,7 +164,7 @@ static BaseType_t xRstrNameCpy(const name_t *pxSrc, name_t *pxDst)
                 return pdFALSE;
         }
 
-        ESP_LOGI(TAG_IPCPMANAGER, "Name %pK copied successfully into %pK", pxSrc, pxDst);
+        ESP_LOGD(TAG_IPCPMANAGER, "Name %pK copied successfully into %pK", pxSrc, pxDst);
 
         return pdTRUE;
 }

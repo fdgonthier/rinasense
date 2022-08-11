@@ -163,7 +163,7 @@ static flow_t *prvFlowAllocatorNewFlow(flowAllocateHandle_t *pxFlowRequest)
     pxDtpConfig = pvPortMalloc((sizeof(*pxDtpConfig)));
     pxDtpPolicySet = pvPortMalloc(sizeof(*pxDtpPolicySet));
 
-    // ESP_LOGI(TAG_FA, "DEst:%s", strdup(pxFlowRequest->pxRemote));
+    // ESP_LOGD(TAG_FA, "DEst:%s", strdup(pxFlowRequest->pxRemote));
 
     pxFlow->pxSourceInfo = pxFlowRequest->pxLocal;
     pxFlow->pxDestInfo = pxFlowRequest->pxRemote;
@@ -199,7 +199,7 @@ void vFlowAllocatorFlowRequest(
     portId_t xAppPortId,
     flowAllocateHandle_t *pxFlowRequest)
 {
-    ESP_LOGI(TAG_FA, "Handling the Flow Allocation Request");
+    ESP_LOGD(TAG_FA, "Handling the Flow Allocation Request");
 
     flow_t *pxFlow;
     neighborInfo_t *pxNeighbor;
@@ -233,7 +233,7 @@ void vFlowAllocatorFlowRequest(
     // pcNeighbor = xNmsGetNextHop(pxFlow->pxDesInfo->pcProcessName;
 
     pcNeighbor = REMOTE_ADDRESS_AP_NAME; // "ar1.mobile"; // Hardcode for testing
-    ESP_LOGI(TAG_FA, "Getting Neighbor");
+    ESP_LOGD(TAG_FA, "Getting Neighbor");
 
     /* Request to DFT the Next Hop, at the moment request to EnrollmmentTask */
     pxNeighbor = pxEnrollmentFindNeighbor(pcNeighbor);
@@ -251,7 +251,7 @@ void vFlowAllocatorFlowRequest(
     }
 
     /* Call EFCP to create an EFCP instance following the EFCP Config */
-    ESP_LOGI(TAG_FA, "Creating a Connection");
+    ESP_LOGD(TAG_FA, "Creating a Connection");
 
     pxEfcpc = pxIPCPGetEfcpc();
 
@@ -267,9 +267,9 @@ void vFlowAllocatorFlowRequest(
     /*------ Add CepSourceID into the Flow------*/
     if (!xNormalUpdateCepIdFlow(xAppPortId, xCepSourceId))
     {
-        ESP_LOGI(TAG_FA, "CepId not updated into the flow");
+        ESP_LOGD(TAG_FA, "CepId not updated into the flow");
     }
-    ESP_LOGI(TAG_FA, "CepId updated into the flow");
+    ESP_LOGD(TAG_FA, "CepId updated into the flow");
     /* Fill the Flow connectionId */
     pxConnectionId->xSource = xCepSourceId;
     pxConnectionId->xQosId = pxFlow->pxQosSpec->xQosId;
@@ -311,13 +311,13 @@ BaseType_t xFlowAllocatorHandleCreateR(serObjectValue_t *pxSerObjValue, int resu
 
     if (pxSerObjValue == NULL)
     {
-        ESP_LOGI(TAG_FA, "no object value ");
+        ESP_LOGD(TAG_FA, "no object value ");
         return pdFALSE;
     }
 
     if (result != 0)
     {
-        ESP_LOGI(TAG_FA, "Was not possible to create the Flow...");
+        ESP_LOGD(TAG_FA, "Was not possible to create the Flow...");
         return pdFALSE;
     }
     // Decode the FA message
@@ -351,11 +351,11 @@ BaseType_t xFlowAllocatorHandleCreateR(serObjectValue_t *pxSerObjValue, int resu
     }
 
     pxFAI->eFaiState = eFAI_ALLOCATED;
-    ESP_LOGI(TAG_FA, "Flow state updated to Allocated");
+    ESP_LOGD(TAG_FA, "Flow state updated to Allocated");
 
-    if (pxFAI->pxFlowAllocatorHandle->xEventBits != NULL)
+    if (pxFAI->pxFlowAllocatorHandle != NULL)
     {
-        (void)xEventGroupSetBits(pxFAI->pxFlowAllocatorHandle->xEventGroup, (EventBits_t)eFLOW_BOUND);
+        (void)xEventGroupSetBits(pxFAI->pxFlowAllocatorHandle->xEventGroup, (EventBits_t)eFLOW_ACCEPT);
     }
 
     return pdTRUE;

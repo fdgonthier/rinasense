@@ -82,7 +82,7 @@ BaseType_t xPidmAllocated(pidm_t *pxInstance, portId_t xPortId)
 
                 if (pos->xPid == xPortId)
                 {
-                        ESP_LOGI(TAG_IPCPMANAGER, "Port ID %p, #: %d", pos, pos->xPid);
+                        ESP_LOGD(TAG_IPCPMANAGER, "Port ID %p, #: %d", pos, pos->xPid);
                         vPortFree(pos);
 
                         return pdTRUE;
@@ -144,7 +144,7 @@ portId_t xPidmAllocate(pidm_t *pxInstance)
 
         pxInstance->xLastAllocated = pid;
 
-        ESP_LOGI(TAG_IPCPMANAGER, "Port-id allocation completed successfully (id = %d)", pid);
+        ESP_LOGD(TAG_IPCPMANAGER, "Port-id allocation completed successfully (id = %d)", pid);
 
         return pid;
 }
@@ -182,7 +182,7 @@ BaseType_t xPidmRelease(pidm_t *pxInstance,
         }
         else
         {
-                ESP_LOGI(TAG_IPCPMANAGER, "Port-id release completed successfully (port_id: %d)", id);
+                ESP_LOGD(TAG_IPCPMANAGER, "Port-id release completed successfully (port_id: %d)", id);
         }
 
         return pdTRUE;

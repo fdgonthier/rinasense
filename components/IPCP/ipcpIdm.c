@@ -79,7 +79,7 @@ BaseType_t xIpcpIdmAllocated(ipcpIdm_t *pxInstance, ipcProcessId_t xIpcpId)
 
                 if (pos->xIpcpId == xIpcpId)
                 {
-                        ESP_LOGI(TAG_IPCPMANAGER, "IPCP ID %p, #: %d", pos, pos->xIpcpId);
+                        ESP_LOGD(TAG_IPCPMANAGER, "IPCP ID %p, #: %d", pos, pos->xIpcpId);
 
                         return pdTRUE;
                 }
@@ -138,7 +138,7 @@ ipcProcessId_t xIpcpIdmAllocate(ipcpIdm_t *pxInstance)
 
         pxInstance->xLastAllocated = pid;
 
-        ESP_LOGI(TAG_IPCPMANAGER, "Ipcp-id allocation completed successfully (ipcpId = %d)", pid);
+        ESP_LOGD(TAG_IPCPMANAGER, "Ipcp-id allocation completed successfully (ipcpId = %d)", pid);
 
         return pid;
 }
@@ -174,7 +174,7 @@ BaseType_t xIpcpIdmRelease(ipcpIdm_t *pxInstance,
         }
         else
         {
-                ESP_LOGI(TAG_IPCPMANAGER, "Port-id release completed successfully (port_id: %d)", id);
+                ESP_LOGD(TAG_IPCPMANAGER, "Port-id release completed successfully (port_id: %d)", id);
         }
 
         return pdTRUE;

@@ -236,7 +236,7 @@ static void prvIPCPTask(void *pvParameters)
         case eNetworkDownEvent:
             /* Attempt to establish a connection. */
             vTaskDelay(INITIALISATION_RETRY_DELAY);
-            ESP_LOGI(TAG_IPCPMANAGER, "eNetworkDownEvent");
+            ESP_LOGD(TAG_IPCPMANAGER, "eNetworkDownEvent");
             xNetworkUp = pdFALSE;
             prvProcessNetworkDownEvent();
             break;
@@ -295,13 +295,13 @@ static void prvIPCPTask(void *pvParameters)
 
             break;
         case eFATimerEvent:
-            ESP_LOGI(TAG_IPCPMANAGER, "Setting FA timer to expired");
+            ESP_LOGD(TAG_IPCPMANAGER, "Setting FA timer to expired");
             vIpcpSetFATimerExpiredState(pdTRUE);
 
             break;
         case eFlowDeallocateEvent:
 
-            ESP_LOGI(TAG_IPCPMANAGER, "---------- Flow Deallocation -------");
+            ESP_LOGD(TAG_IPCPMANAGER, "---------- Flow Deallocation -------");
             //(void)vFlowAllocatorDeallocate((portId_t *)xReceivedEvent.pvData);
 
             break;
@@ -364,7 +364,7 @@ BaseType_t RINA_IPCPInit()
 {
     BaseType_t xReturn = pdFALSE;
 
-    ESP_LOGI(TAG_IPCPMANAGER, "************* INIT RINA ***********");
+    ESP_LOGD(TAG_IPCPMANAGER, "************* INIT RINA ***********");
 
     /* This function should only be called once. */
     configASSERT(xIPCPIsNetworkTaskReady() == pdFALSE);
@@ -412,7 +412,7 @@ BaseType_t RINA_IPCPInit()
              * debugger.  If one is in use then it will be helpful for the debugger
              * to show information about the network event queue. */
             vQueueAddToRegistry(xNetworkEventQueue, "NetEvnt");
-            ESP_LOGI(TAG_IPCPMANAGER, "Queue added to Registry: %d", configQUEUE_REGISTRY_SIZE);
+            ESP_LOGD(TAG_IPCPMANAGER, "Queue added to Registry: %d", configQUEUE_REGISTRY_SIZE);
         }
 #endif /* QUEUE_REGISTRY_SIZE */
 
@@ -574,12 +574,12 @@ void prvHandleEthernetPacket(NetworkBufferDescriptor_t *pxBuffer)
         /* When ipconfigUSE_LINKED_RX_MESSAGES is not set to 0 then only one
          * buffer will be sent at a time.  This is the default way for +TCP to pass
          * messages from the MAC to the TCP/IP stack. */
-        ESP_LOGI(TAG_IPCPMANAGER, "Packet to network stack %p, len %d", pxBuffer, pxBuffer->xDataLength);
+        ESP_LOGD(TAG_IPCPMANAGER, "Packet to network stack %p, len %d", pxBuffer, pxBuffer->xDataLength);
         prvProcessEthernetPacket(pxBuffer);
     }
 #else  /* configUSE_LINKED_RX_MESSAGES */
     {
-        ESP_LOGI(TAG_IPCPMANAGER, "Packet to network stack 2 %p, len %d", pxBuffer, pxBuffer->xDataLength);
+        ESP_LOGD(TAG_IPCPMANAGER, "Packet to network stack 2 %p, len %d", pxBuffer, pxBuffer->xDataLength);
         NetworkBufferDescriptor_t *pxNextBuffer;
 
         /* An optimisation that is useful when there is high network traffic.
@@ -630,7 +630,7 @@ void prvProcessEthernetPacket(NetworkBufferDescriptor_t *const pxNetworkBuffer)
         case ETH_P_ARP:
 
             /* The Ethernet frame contains an ARP packet. */
-            ESP_LOGI(TAG_IPCPMANAGER, "ARP Packet Received");
+            ESP_LOGD(TAG_IPCPMANAGER, "ARP Packet Received");
 
             if (pxNetworkBuffer->xEthernetDataLength >= sizeof(ARPPacket_t))
             {
@@ -648,7 +648,7 @@ void prvProcessEthernetPacket(NetworkBufferDescriptor_t *const pxNetworkBuffer)
 
         case ETH_P_RINA:
 
-            ESP_LOGI(TAG_IPCPMANAGER, "RINA Packet Received");
+            ESP_LOGD(TAG_IPCPMANAGER, "RINA Packet Received");
 
             uint8_t *ptr;
             size_t uxRinaLength;
@@ -702,11 +702,11 @@ void prvProcessEthernetPacket(NetworkBufferDescriptor_t *const pxNetworkBuffer)
 
         /* The frame is in use somewhere, don't release the buffer
          * yet. */
-        ESP_LOGI(TAG_SHIM, "Frame Consumed");
+        ESP_LOGD(TAG_SHIM, "Frame Consumed");
         break;
 
     case eReleaseBuffer:
-        // ESP_LOGI(TAG_SHIM, "Releasing Buffer: ProcessEthernet");
+        // ESP_LOGD(TAG_SHIM, "Releasing Buffer: ProcessEthernet");
         if (pxNetworkBuffer != NULL)
         {
             vReleaseNetworkBufferAndDescriptor(pxNetworkBuffer);
@@ -725,7 +725,7 @@ void prvProcessEthernetPacket(NetworkBufferDescriptor_t *const pxNetworkBuffer)
         }
         else
         {
-            ESP_LOGI(TAG_IPCPMANAGER, "Buffer Processed");
+            ESP_LOGD(TAG_IPCPMANAGER, "Buffer Processed");
             vReleaseNetworkBufferAndDescriptor(pxNetworkBuffer);
         }
 
@@ -735,7 +735,7 @@ void prvProcessEthernetPacket(NetworkBufferDescriptor_t *const pxNetworkBuffer)
         /* The frame is not being used anywhere, and the
          * NetworkBufferDescriptor_t structure containing the frame should
          * just be released back to the list of free buffers. */
-        // ESP_LOGI(TAG_SHIM, "Default: Releasing Buffer");
+        // ESP_LOGD(TAG_SHIM, "Default: Releasing Buffer");
         vReleaseNetworkBufferAndDescriptor(pxNetworkBuffer);
         break;
     }
@@ -801,7 +801,7 @@ static void prvCheckNetworkTimers(void)
     /* Is it time for ARP processing? */
     if (prvIPCPTimerCheck(&xARPTimer) != pdFALSE)
     {
-        ESP_LOGI(TAG_SHIM, "TEST");
+        ESP_LOGD(TAG_SHIM, "TEST");
         (void)xSendEventToIPCPTask(eARPTimerEvent);
     }
 }
@@ -953,7 +953,7 @@ void RINA_NetworkDown(void)
     static const RINAStackEvent_t xNetworkDownEvent = {eNetworkDownEvent, NULL};
     const TickType_t xDontBlock = (TickType_t)0;
 
-    ESP_LOGI(TAG_IPCPMANAGER, "RINA_NetworkDown");
+    ESP_LOGD(TAG_IPCPMANAGER, "RINA_NetworkDown");
     /* Simply send the network task the appropriate event. */
     if (xSendEventStructToIPCPTask(&xNetworkDownEvent, xDontBlock) != pdPASS)
     {

@@ -54,25 +54,25 @@ void app_main(void)
 
 	vTaskDelay(1000);
 
-	ESP_LOGI(TAG_APP, "----------- Requesting a Flow ----- ");
+	ESP_LOGD(TAG_APP, "----------- Requesting a Flow ----- ");
 
 	xAppPortId = RINA_flow_alloc("mobile.DIF", "STH1", "sensor1", xFlowSpec, Flags);
 
-	ESP_LOGI(TAG_APP, "Flow Port id: %d ", xAppPortId);
+	ESP_LOGD(TAG_APP, "Flow Port id: %d ", xAppPortId);
 	if (xAppPortId != -1)
 	{
 
 		while (i < 100)
 		{
 
-			// ESP_LOGI(TAG_APP, "Temperature: 30 C");
+			// ESP_LOGD(TAG_APP, "Temperature: 30 C");
 
 			sprintf(json, "Temperature: 30 C\n");
 
-			ESP_LOGI(TAG_APP, "json:%s", json);
+			ESP_LOGD(TAG_APP, "json:%s", json);
 			if (RINA_flow_write(xAppPortId, (void *)json, strlen(json)))
 			{
-				ESP_LOGI(TAG_APP, "Sent Data successfully");
+				ESP_LOGD(TAG_APP, "Sent Data successfully");
 			}
 
 			xBytes = RINA_flow_read(xAppPortId, (void *)buffer, xLenBuffer);
@@ -80,13 +80,13 @@ void app_main(void)
 			if (xBytes > 0)
 			{
 				data = strdup(buffer);
-				ESP_LOGI(TAG_APP, "Receive data");
-				ESP_LOGI(TAG_APP, "Buffer: %s", data);
-				ESP_LOGI(TAG_APP, "Bytes received: %d", xBytes);
+				ESP_LOGD(TAG_APP, "Receive data");
+				ESP_LOGD(TAG_APP, "Buffer: %s", data);
+				ESP_LOGD(TAG_APP, "Bytes received: %d", xBytes);
 			}
 			if (xBytes == 0)
 			{
-				ESP_LOGI(TAG_APP, "It was an error receiving the buffer");
+				ESP_LOGD(TAG_APP, "It was an error receiving the buffer");
 			}
 
 			vTaskDelay(8000 / portTICK_RATE_MS);
