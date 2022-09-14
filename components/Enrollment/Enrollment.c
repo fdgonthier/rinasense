@@ -442,11 +442,11 @@ BaseType_t xEnrollmentHandleStop(struct ribObject_t *pxEnrRibObj,
 BaseType_t xEnrollmentHandleOperationalStart(struct ribObject_t *pxOperRibObj, serObjectValue_t *pxSerObjectValue, string_t pcRemoteApName,
                                              string_t pcLocalApName, int invokeId, portId_t xN1Port)
 {
-        ESP_LOGE(TAG_ENROLLMENT, "EnrollmentHandle OperationalStart");
+        ESP_LOGD(TAG_ENROLLMENT, "EnrollmentHandle OperationalStart");
         neighborMessage_t *pxNeighborMsg;
         neighborInfo_t *pxNeighborInfo = NULL;
 
-        ESP_LOGE(TAG_ENROLLMENT, "Looking Neighbor");
+        ESP_LOGD(TAG_ENROLLMENT, "Looking Neighbor");
         pxNeighborInfo = pxEnrollmentFindNeighbor(pcRemoteApName);
 
         pxNeighborMsg = pvPortMalloc(sizeof(*pxNeighborMsg));

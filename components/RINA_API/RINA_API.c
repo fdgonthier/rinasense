@@ -121,7 +121,7 @@ BaseType_t xRINA_bind(flowAllocateHandle_t *pxFlowRequest)
 
 void vRINA_WeakUpUser(flowAllocateHandle_t *pxFlowAllocateResponse)
 {
-    ESP_LOGE(TAG_RINA, "Weaking up user");
+    ESP_LOGD(TAG_RINA, "Weaking up user");
     if (!pxFlowAllocateResponse)
     {
         ESP_LOGE(TAG_RINA, "No Bits set");
@@ -387,8 +387,8 @@ size_t RINA_flow_write(portId_t xPortId, void *pvBuffer, size_t uxTotalDataLengt
 
     time_Init_Tx = esp_timer_get_time();
 
-    ESP_LOGE(TAG_RINA, "*********** TIME INIT TX Data *******");
-    ESP_LOGE(TAG_RINA, "TIme Init: %d", time_Init_Tx);
+    // ESP_LOGE(TAG_RINA, "*********** TIME INIT TX Data *******");
+    // ESP_LOGE(TAG_RINA, "TIme Init: %d", time_Init_Tx);
 
     /*Check that DataLength is not longer than MAX_SDU_SIZE*/
     // This should not consider??? because the delimiter split into several packets??
@@ -441,7 +441,7 @@ size_t RINA_flow_write(portId_t xPortId, void *pvBuffer, size_t uxTotalDataLengt
     return 0;
 }
 
-BaseType_t RINA_close(portId_t xAppPortId)
+BaseType_t RINA_flow_close(portId_t xAppPortId)
 {
     BaseType_t xResult;
 
@@ -449,22 +449,26 @@ BaseType_t RINA_close(portId_t xAppPortId)
     xDeallocateEvent.eEventType = eFlowDeallocateEvent;
     xDeallocateEvent.pvData = xAppPortId;
 
-    if ((xAppPortId == NULL) || (is_port_id_ok(xAppPortId)))
+    // Check if the port Id is valid. If it is valid, send a event to the IPCP task
+    if ((xAppPortId == NULL) || (!is_port_id_ok(xAppPortId)))
     {
         xResult = pdFALSE;
     }
     else
     {
 
-        if (xSendEventStructToIPCPTask(&xDeallocateEvent, (TickType_t)portMAX_DELAY) == pdFAIL)
+        (void)vFlowAllocatorDeallocate(xAppPortId);
+        /*if (xSendEventStructToIPCPTask(&xDeallocateEvent, (TickType_t)portMAX_DELAY) == pdFAIL)
         {
-            ESP_LOGD(TAG_RINA, "RINA Deallocate Flow: failed");
+            ESP_LOGE(TAG_RINA, "RINA Deallocate Flow: failed");
             xResult = pdFALSE;
         }
         else
         {
             xResult = pdTRUE;
-        }
+        }*/
+
+        xResult = pdTRUE;
     }
 
     return xResult;
@@ -483,8 +487,11 @@ int32_t RINA_flow_read(portId_t xPortId, void *pvBuffer, size_t uxTotalDataLengt
     int32_t lDataLength;
     EventBits_t xEventBits = (EventBits_t)0;
     size_t uxPayloadLength;
+    int32_t timer_delta;
 
-    ESP_LOGE(TAG_RINA, "RINA_FLOW_READ Called");
+    ESP_LOGD(TAG_RINA, "RINA_FLOW_READ Called");
+    timer_delta = esp_timer_get_time();
+    ESP_LOGD(TAG_RINA, "Time Called: %d", timer_delta);
 
     // Validate if the flow is valid, if the xPortId is working status CONNECTED
     if (RINA_flowStatus(xPortId) != 1)
@@ -496,13 +503,19 @@ int32_t RINA_flow_read(portId_t xPortId, void *pvBuffer, size_t uxTotalDataLengt
     {
         // find the flow handle associated to the xPortId.
         pxFlowHandle = pxFAFindFlowHandle(xPortId);
+        timer_delta = esp_timer_get_time();
+        ESP_LOGD(TAG_RINA, "Time Init check packet in the list: %d", timer_delta);
 
         xPacketCount = (BaseType_t)listCURRENT_LIST_LENGTH(&(pxFlowHandle->xListWaitingPackets));
 
         ESP_LOGD(TAG_RINA, "Numbers of packet in the queue: %d", xPacketCount);
+        timer_delta = esp_timer_get_time();
+        ESP_LOGD(TAG_RINA, "Time finit check packet in the list: %d", timer_delta);
 
         while (xPacketCount == 0)
         {
+            timer_delta = esp_timer_get_time();
+            ESP_LOGD(TAG_RINA, "Time init check blocking: %d", timer_delta);
             if (xTimed == pdFALSE)
             {
                 /* Check to see if the flow is non blocking on the first
@@ -523,11 +536,16 @@ int32_t RINA_flow_read(portId_t xPortId, void *pvBuffer, size_t uxTotalDataLengt
                 /* To ensure this part only executes once. */
                 xTimed = pdTRUE;
 
+                timer_delta = esp_timer_get_time();
+                ESP_LOGD(TAG_RINA, "Time finit check blocking: %d", timer_delta);
+
                 /* Fetch the current time. */
                 vTaskSetTimeOutState(&xTimeOut);
             }
 
             ESP_LOGD(TAG_RINA, "waiting...");
+            timer_delta = esp_timer_get_time();
+            ESP_LOGD(TAG_RINA, "Time init waiting: %d", timer_delta);
 
             /* Wait for arrival of data.  While waiting, the IPCP-task may set the
              * 'eFLOW_RECEIVE' bit in 'xEventGroup', if it receives data for this
@@ -535,10 +553,14 @@ int32_t RINA_flow_read(portId_t xPortId, void *pvBuffer, size_t uxTotalDataLengt
             xEventBits = xEventGroupWaitBits(pxFlowHandle->xEventGroup, ((EventBits_t)eFLOW_RECEIVE),
                                              pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, xRemainingTime);
 
-            {
-                (void)xEventBits;
-            }
+            timer_delta = esp_timer_get_time();
+            ESP_LOGD(TAG_RINA, "Time finit waiting: %d", timer_delta);
 
+            /*
+                        {
+                            (void)xEventBits;
+                        }
+            */
             xPacketCount = (BaseType_t)listCURRENT_LIST_LENGTH(&(pxFlowHandle->xListWaitingPackets));
 
             if (xPacketCount != 0)
@@ -554,8 +576,13 @@ int32_t RINA_flow_read(portId_t xPortId, void *pvBuffer, size_t uxTotalDataLengt
                 ESP_LOGD(TAG_RINA, "xRemainingTime: %d", xRemainingTime);
                 break;
             }
+
+            timer_delta = esp_timer_get_time();
+            ESP_LOGD(TAG_RINA, "Time finit waiting: %d", timer_delta);
         } /* End while */
 
+        timer_delta = esp_timer_get_time();
+        ESP_LOGD(TAG_RINA, "Time init ckeck packet: %d", timer_delta);
         if (xPacketCount != 0)
         {
 
@@ -579,12 +606,14 @@ int32_t RINA_flow_read(portId_t xPortId, void *pvBuffer, size_t uxTotalDataLengt
 
         else
         {
-            ESP_LOGE(TAG_RINA, "Error Timeout");
+            ESP_LOGD(TAG_RINA, "Error Timeout");
             lDataLength = -1;
         }
+        timer_delta = esp_timer_get_time();
+        ESP_LOGD(TAG_RINA, "Time finit ckeck packet: %d", timer_delta);
     }
 
-    ESP_LOGE(TAG_RINA, "Returning to main");
+    ESP_LOGD(TAG_RINA, "Returning to main");
 
     return lDataLength;
 }

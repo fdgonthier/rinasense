@@ -927,27 +927,27 @@ static struct normalFlow_t *prvFindFlowCepid(cepId_t xCepId)
         return NULL;
 }
 
-BaseType_t xNormalConnectionDestroy(cepId_t xSrcCepId)
+BaseType_t xNormalConnectionDestroy(portId_t xPortId)
 {
         struct normalFlow_t *pxFlow;
 
-        if (xEfcpConnectionDestroy(pxIpcpData->pxEfcpc, xSrcCepId))
-                ESP_LOGE(TAG_EFCP, "Could not destroy EFCP instance: %d", xSrcCepId);
-
-        // CRITICAL
-        if (!(&pxIpcpData->xFlowsList))
-        {
-                // CRITICAL
-                ESP_LOGE(TAG_EFCP, "Could not destroy EFCP instance: %d", xSrcCepId);
-                return pdFALSE;
-        }
-        pxFlow = prvFindFlowCepid(xSrcCepId);
+        pxFlow = prvNormalFindFlow(pxIpcpData, xPortId);
         if (!pxFlow)
         {
-                // CRITICAL
-                ESP_LOGE(TAG_IPCPNORMAL, "Could not retrieve flow by cep_id :%d", xSrcCepId);
+                ESP_LOGE(TAG_IPCPNORMAL, "Could not retrieve flow:%d", xPortId);
                 return pdFALSE;
         }
+
+        if (xEfcpConnectionDestroy(pxIpcpData->pxEfcpc, pxFlow->xActive))
+                ESP_LOGE(TAG_EFCP, "Could not destroy EFCP instance: %d", pxFlow->xActive);
+
+        if (!(&pxIpcpData->xFlowsList))
+        {
+
+                ESP_LOGE(TAG_EFCP, "Could not destroy EFCP instance: %d", pxFlow->xActive);
+                return pdFALSE;
+        }
+
         /*if (remove_cep_id_from_flow(flow, src_cep_id))
                 LOG_ERR("Could not remove cep_id: %d", src_cep_id);
 

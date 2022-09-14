@@ -736,7 +736,14 @@ messageCdap_t *prvRibdFillEnrollMsgStart(string_t pcObjClass, string_t pcObjName
     return pxMessage;
 }
 
-BaseType_t xRibdConnectToIpcp(struct ipcpNormalData_t *pxIpcpData, name_t *pxSource, name_t *pxDestInfo, portId_t xN1flowPortId, authPolicy_t *pxAuth)
+messageCdap_t *prvRibdFillDeleteMsg(string_t pcObjClass, string_t pcObjName, long objInst, opCode_t eOpCode,
+                                    serObjectValue_t *pxObjValue)
+{
+    return prvRibdFillCommon(pcObjClass, pcObjName, objInst, eOpCode, pxObjValue);
+}
+
+BaseType_t
+xRibdConnectToIpcp(struct ipcpNormalData_t *pxIpcpData, name_t *pxSource, name_t *pxDestInfo, portId_t xN1flowPortId, authPolicy_t *pxAuth)
 {
 
     ESP_LOGD(TAG_RIB, "Preparing a M_CONNECT message");
@@ -1046,7 +1053,6 @@ BaseType_t vRibHandleMessage(struct ipcpNormalData_t *pxData, messageCdap_t *pxD
     // for testing purposes
     case M_WRITE:
 
-        ESP_LOGE(TAG_RIB, "-------Handling M_WRITE----------");
         // must write into the object
         if (strcmp(pxDecodeCdap->pcObjName, "a_data") == 0)
         {
@@ -1126,16 +1132,18 @@ BaseType_t xRibdSendRequest(string_t pcObjClass, string_t pcObjName, long objIns
     {
     case M_START:
         pxMsgCdap = prvRibdFillEnrollMsg(pcObjClass, pcObjName, objInst, eOpCode, pxObjVal);
-
         break;
 
     case M_STOP:
         pxMsgCdap = prvRibdFillEnrollMsg(pcObjClass, pcObjName, objInst, eOpCode, pxObjVal);
-
         break;
 
     case M_CREATE:
         pxMsgCdap = prvRibdFillMsgCreate(pcObjClass, pcObjName, objInst, pxObjVal);
+        break;
+
+    case M_DELETE:
+        pxMsgCdap = prvRibdFillDeleteMsg(pcObjClass, pcObjName, objInst, eOpCode, pxObjVal);
         break;
 
     default:
@@ -1180,6 +1188,10 @@ struct ribCallbackOps_t *pxRibdCreateCdapCallback(opCode_t xOpCode, int invoke_i
     case M_CREATE:
         /*FLow Allocator*/
         pxCallback->create_response = xFlowAllocatorHandleCreateR;
+        break;
+
+    case M_DELETE:
+        pxCallback->delete_response = xFlowAllocatorHandleDeleteR;
 
         break;
         // TODO: M_DELETE call to xFlowAllocatorDeallocate

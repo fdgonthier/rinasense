@@ -38,29 +38,6 @@ typedef enum
 
 } eFaiState_t;
 
-typedef struct xFLOW_ALLOCATOR_INSTANCE
-{
-    /* Flow allocator Instance Item */
-    ListItem_t xInstanceItem;
-
-    /* PortId associated to this flow Allocator Instance*/
-    portId_t xPortId;
-
-    /* State */
-    eFaiState_t eFaiState;
-
-    /* Flow Allocator Request*/
-    flowAllocateHandle_t *pxFlowAllocatorHandle;
-
-} flowAllocatorInstance_t;
-
-typedef struct xFLOW_ALLOCATOR
-{
-    /* List of FAI*/
-    List_t xFlowAllocatorInstances;
-
-} flowAllocator_t;
-
 typedef struct xQOS_SPEC
 {
     /* The name of the QoS cube, if known */
@@ -121,6 +98,31 @@ typedef struct xFLOW_MESSAGE
 
 } flow_t;
 
+typedef struct xFLOW_ALLOCATOR_INSTANCE
+{
+    /* Flow allocator Instance Item */
+    ListItem_t xInstanceItem;
+
+    /* PortId associated to this flow Allocator Instance*/
+    portId_t xPortId;
+
+    /* State */
+    eFaiState_t eFaiState;
+
+    /* Flow Allocator Request*/
+    flowAllocateHandle_t *pxFlowAllocatorHandle;
+
+    flow_t *pxFlowMessage;
+
+} flowAllocatorInstance_t;
+
+typedef struct xFLOW_ALLOCATOR
+{
+    /* List of FAI*/
+    List_t xFlowAllocatorInstances;
+
+} flowAllocator_t;
+
 typedef struct xREQUEST_HANDLER_ROW
 {
     flowAllocatorInstance_t *pxFAI;
@@ -141,5 +143,7 @@ BaseType_t xFlowAllocatorHandleDelete(struct ribObject_t *pxRibObject, int invok
 flowAllocateHandle_t *pxFAFindFlowHandle(portId_t xPortId);
 
 BaseType_t xFlowAllocatorDuPost(portId_t xAppPortId, struct du_t *pxDu);
+
+BaseType_t xFlowAllocatorHandleDeleteR(struct ribObject_t *pxRibObject, int invoke_id);
 
 #endif

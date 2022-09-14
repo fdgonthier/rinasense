@@ -227,7 +227,7 @@ void vFlowAllocatorFlowRequest(
     pxFlowAllocatorInstance->pxFlowAllocatorHandle = pxFlowRequest;
 
     prvAddFlowRequestEntry(pxFlowAllocatorInstance);
-    ESP_LOGE(TAG_FA, "FAI added properly");
+    ESP_LOGD(TAG_FA, "FAI added properly");
 
     // Query NameManager to getting neighbor how knows the destination requested
     // pcNeighbor = xNmsGetNextHop(pxFlow->pxDesInfo->pcProcessName;
@@ -276,6 +276,8 @@ void vFlowAllocatorFlowRequest(
     pxConnectionId->xDestination = 0;
 
     pxFlow->pxConnectionId = pxConnectionId;
+
+    pxFlowAllocatorInstance->pxFlowMessage = pxFlow;
 
     /* Send the flow message to the neighbor */
     // Serialize the pxFLow Struct into FlowMsg and Encode the FlowMsg as obj_value
@@ -351,6 +353,9 @@ BaseType_t xFlowAllocatorHandleCreateR(serObjectValue_t *pxSerObjValue, int resu
     }
 
     pxFAI->eFaiState = eFAI_ALLOCATED;
+    pxFAI->pxFlowMessage->pxConnectionId->xDestination = pxFlow->pxConnectionId->xSource;
+    pxFAI->pxFlowMessage->xRemoteAddress = pxFlow->xSourceAddress;
+    pxFAI->pxFlowMessage->xSourceAddress = pxFlow->xRemoteAddress;
     ESP_LOGD(TAG_FA, "Flow state updated to Allocated");
 
     if (pxFAI->pxFlowAllocatorHandle != NULL)
@@ -361,7 +366,22 @@ BaseType_t xFlowAllocatorHandleCreateR(serObjectValue_t *pxSerObjValue, int resu
     return pdTRUE;
 }
 
-BaseType_t xFlowAllocatorHandleDelete(struct ribObject_t *pxRibObject, int invoke_id)
+BaseType_t
+xFlowAllocatorHandleDeleteR(struct ribObject_t *pxRibObject, int invoke_id)
+
+{
+    ESP_LOGE(TAG_FA, "HANDLE DELETE");
+
+    // Delete connection
+    // delete EFCP instance
+    // change portId to NO ALLOCATED,
+    // Send message to User with close,
+
+    return pdFALSE;
+}
+
+BaseType_t
+xFlowAllocatorHandleDelete(struct ribObject_t *pxRibObject, int invoke_id)
 
 {
     ESP_LOGE(TAG_FA, "HANDLE DELETE");
@@ -377,12 +397,30 @@ BaseType_t xFlowAllocatorHandleDelete(struct ribObject_t *pxRibObject, int invok
 void vFlowAllocatorDeallocate(portId_t xAppPortId)
 {
 
+    flowAllocatorInstance_t *pxFAI;
+
     if (!xAppPortId)
     {
         ESP_LOGE(TAG_FA, "Bogus data passed, bailing out");
     }
-
     // Find Flow and move to deallocate status.
+    pxFAI = pxFAFindInstance(xAppPortId);
+
+    if (!pxFAI)
+    {
+        ESP_LOGE(TAG_FA, "Flow Allocator instance was not founded");
+    }
+    pxFAI->eFaiState = eFAI_NONE;
+
+    // Send to remote a M_Delete
+    char flowObj[24];
+    sprintf(flowObj, "/fa/flows/key=%d-%d", pxFAI->pxFlowMessage->xSourceAddress, pxFAI->pxFlowMessage->xSourcePortId);
+
+    if (!xRibdSendRequest("Flow", flowObj, -1, M_DELETE, xAppPortId, NULL)) // fixing N1PortId
+    {
+        ESP_LOGE(TAG_FA, "It was a problem to send the request");
+        // return pdFALSE;
+    }
 }
 
 BaseType_t xFlowAllocatorDuPost(portId_t xAppPortId, struct du_t *pxDu)
@@ -404,7 +442,7 @@ BaseType_t xFlowAllocatorDuPost(portId_t xAppPortId, struct du_t *pxDu)
         return pdFALSE;
     }
 
-    ESP_LOGE(TAG_FA, "Posting DU to port-id %d ", xAppPortId);
+    ESP_LOGD(TAG_FA, "Posting DU to port-id %d ", xAppPortId);
 
     pxNetworkBuffer = pxDu->pxNetworkBuffer;
 
@@ -440,13 +478,17 @@ BaseType_t xFlowAllocatorDuPost(portId_t xAppPortId, struct du_t *pxDu)
 
     time_Init_Rx = esp_timer_get_time();
 
-    ESP_LOGE(TAG_RINA, "*********** TIME INIT RX Data *******");
-    ESP_LOGE(TAG_RINA, "TIme Init: %d", time_Init_Rx);
+    ESP_LOGD(TAG_RINA, "*********** TIME INIT RX Data *******");
+    ESP_LOGD(TAG_RINA, "TIme Init: %d", time_Init_Rx);
 
     /* Set the socket's receive event */
     if (pxFlowAllocatorInstance->pxFlowAllocatorHandle->xEventBits != NULL)
     {
+        time_Init_Rx = esp_timer_get_time();
+        ESP_LOGD(TAG_FA, "Before Posting: %d", time_Init_Rx);
         (void)xEventGroupSetBits(pxFlowAllocatorInstance->pxFlowAllocatorHandle->xEventGroup, (EventBits_t)eFLOW_RECEIVE);
+        time_Init_Rx = esp_timer_get_time();
+        ESP_LOGD(TAG_FA, "After Posting: %d", time_Init_Rx);
     }
 
     return pdTRUE;

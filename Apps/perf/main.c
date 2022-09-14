@@ -61,14 +61,19 @@ void app_main(void)
     float pps, bps;
     double time_inter;
 
+        void *bufferRx;
+    size_t xLenBufferRx = 1024;
     char *data;
 
     size_t size_ping = 32;
     char bufferTx[size_ping];
 
+    bufferRx = pvPortMalloc(xLenBufferRx);
+    memset(bufferRx, 0, xLenBufferRx);
+
     memset(bufferTx, 'x', size_ping); // 32bytes  (size_t)(PING_SIZE)
 
-    vTaskDelay(2000);
+    vTaskDelay(1000);
 
     ESP_LOGD(TAG_APP, "----------- Requesting a Flow ----- ");
 
@@ -84,7 +89,7 @@ void app_main(void)
 
         time_start = esp_timer_get_time();
         ESP_LOGI(TAG_APP, "  Interval          Transfer           Bandwidth");
-        for (i = 0; i < 1; i++)
+        for (i = 0; i < 10; i++)
         {
 
             while (time_delta < INTERVAL * 1000000)
@@ -110,7 +115,6 @@ void app_main(void)
 
             ESP_LOGI(TAG_APP, "Time inter = %f", time_inter);
             ESP_LOGI(TAG_APP, "Time delta= %d", time_delta);
-            ESP_LOGI(TAG_APP, "# packets sended= %d", count);
             pps = count * strlen(bufferTx);
             bps = pps * 8 * 1000000 / time_delta;
             bps = bps / 1000000;

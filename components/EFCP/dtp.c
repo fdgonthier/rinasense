@@ -408,7 +408,7 @@ BaseType_t xDtpReceive(dtp_t *pxDtpInstance, struct du_t *pxDu)
                          return pdFALSE;
                  }*/
                 // ESP_LOGE(TAG_DTP, "Flag: %d", pxDu->pxPci->xFlags);
-                ESP_LOGE(TAG_DTP, "PCI FLAG: 0x%04x", pxDu->pxPci->xFlags);
+                ESP_LOGD(TAG_DTP, "PCI FLAG: 0x%04x", pxDu->pxPci->xFlags);
 
                 // if (pxDu->pxPci->xFlags & PDU_FLAGS_DATA_RUN)//Send 0x0000 FLAG ??? why??
                 //{

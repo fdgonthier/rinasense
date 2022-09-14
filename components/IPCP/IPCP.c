@@ -248,10 +248,10 @@ static void prvIPCPTask(void *pvParameters)
              * of the received event structure. */
             time_RX = esp_timer_get_time();
             time_delta = time_RX - time_Tx;
-            ESP_LOGE(TAG_IPCPNORMAL, "**********TIME DELTA************");
-            ESP_LOGE(TAG_IPCPNORMAL, "time delta: %d us", time_delta);
-            ESP_LOGE(TAG_IPCPNORMAL, "**********TIME  RECEIVED************");
-            ESP_LOGE(TAG_IPCPNORMAL, "time RX: %d us", time_RX);
+            ESP_LOGD(TAG_IPCPNORMAL, "**********TIME DELTA************");
+            ESP_LOGD(TAG_IPCPNORMAL, "time delta: %d us", time_delta);
+            ESP_LOGD(TAG_IPCPNORMAL, "**********TIME  RECEIVED************");
+            ESP_LOGD(TAG_IPCPNORMAL, "time RX: %d us", time_RX);
             prvHandleEthernetPacket(CAST_PTR_TO_TYPE_PTR(NetworkBufferDescriptor_t, xReceivedEvent.pvData));
 
             break;
@@ -265,8 +265,8 @@ static void prvIPCPTask(void *pvParameters)
              * the driver, which will release it after delivery. */
 
             time_Tx = esp_timer_get_time();
-            ESP_LOGE(TAG_IPCPNORMAL, "**********TIME  TRANSMITED************");
-            ESP_LOGE(TAG_IPCPNORMAL, "time TX: %d us", time_Tx);
+            ESP_LOGD(TAG_IPCPNORMAL, "**********TIME  TRANSMITED************");
+            ESP_LOGD(TAG_IPCPNORMAL, "time TX: %d us", time_Tx);
 
             (void)xNetworkInterfaceOutput(pxDescriptor, pdTRUE);
         }
@@ -301,7 +301,7 @@ static void prvIPCPTask(void *pvParameters)
             break;
         case eFlowDeallocateEvent:
 
-            ESP_LOGD(TAG_IPCPMANAGER, "---------- Flow Deallocation -------");
+            ESP_LOGI(TAG_IPCPMANAGER, "---------- Flow Deallocation -------");
             //(void)vFlowAllocatorDeallocate((portId_t *)xReceivedEvent.pvData);
 
             break;

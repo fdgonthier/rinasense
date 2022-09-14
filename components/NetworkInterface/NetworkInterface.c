@@ -255,6 +255,8 @@ BaseType_t xNetworkInterfaceOutput(NetworkBufferDescriptor_t *const pxNetworkBuf
 		if (ret != ESP_OK)
 		{
 			ESP_LOGE(TAG_WIFI, "Failed to tx buffer %p, len %d, err %d", pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, ret);
+			// heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_DMA);
+			heap_caps_get_minimum_free_size(MALLOC_CAP_DMA);
 		}
 		else
 		{

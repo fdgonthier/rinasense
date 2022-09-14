@@ -31,7 +31,7 @@ pidm_t *pxPidmCreate(void)
         vListInitialise(&(pxPidmInstance->xAllocatedPorts));
         if (listLIST_IS_INITIALISED(&(pxPidmInstance->xAllocatedPorts)))
         {
-                ESP_LOGE(TAG_IPCPMANAGER, "List initialized properly");
+                ESP_LOGI(TAG_IPCPMANAGER, "List initialized properly");
         }
         pxPidmInstance->xLastAllocated = 0;
 
