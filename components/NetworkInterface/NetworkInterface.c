@@ -142,6 +142,7 @@ BaseType_t xNetworkInterfaceConnect(void)
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT(); // @suppress("Type cannot be resolved")
 	ESP_LOGD(TAG_SHIM, "Init Network Interface with Config file");
 	ESP_ERROR_CHECK(esp_wifi_init(&cfg)); // WiFi driver Task with default config
+	// ESP_ERROR_CHECK(esp_wifi_init_internal(&cfg));
 
 	esp_event_handler_instance_t instance_any_id;
 
