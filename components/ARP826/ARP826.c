@@ -139,7 +139,7 @@ BaseType_t xARPAddressGPAShrink(gpa_t *pxGpa, uint8_t ucFiller)
 	if (pucPosition >= pxGpa->ucAddress + pxGpa->uxLength)
 	{
 		ESP_LOGD(TAG_ARP, "GPA doesn't need to be shrinked ...");
-		return pdFALSE;
+		return pdTRUE;
 	}
 
 	uxLength = pucPosition - pxGpa->ucAddress;
@@ -148,7 +148,10 @@ BaseType_t xARPAddressGPAShrink(gpa_t *pxGpa, uint8_t ucFiller)
 
 	pucNewAddress = pvPortMalloc(uxLength);
 	if (!pucNewAddress)
+	{
+		ESP_LOGE(TAG_ARP, "New Address is null");
 		return pdFALSE;
+	}
 
 	memcpy(pucNewAddress, pxGpa->ucAddress, uxLength);
 
@@ -527,6 +530,7 @@ void vARPRemoveCacheEntry(const gpa_t *pxGpa, const gha_t *pxMACAddress)
 
 eFrameProcessingResult_t eARPProcessPacket(ARPPacket_t *const pxARPFrame)
 {
+	ESP_LOGD(TAG_ARP, "Processing ARP Packet");
 
 	eFrameProcessingResult_t eReturn = eReleaseBuffer;
 	ARPHeader_t *pxARPHeader;
@@ -603,7 +607,7 @@ eFrameProcessingResult_t eARPProcessPacket(ARPPacket_t *const pxARPFrame)
 	pxTmpTha = pxShimCreateGHA(MAC_ADDR_802_3, (MACAddress_t *)ucTha);
 	// vARPPrintCache();
 
-	if (xARPAddressGPAShrink(pxTmpSpa, 0x00))
+	if (!xARPAddressGPAShrink(pxTmpSpa, 0x00))
 	{
 		ESP_LOGE(TAG_ARP, "Problems parsing the source GPA");
 		vShimGPADestroy(pxTmpSpa);
@@ -612,7 +616,7 @@ eFrameProcessingResult_t eARPProcessPacket(ARPPacket_t *const pxARPFrame)
 		vShimGHADestroy(pxTmpTha);
 		return eReturn;
 	}
-	if (xARPAddressGPAShrink(pxTmpTpa, 0x00))
+	if (!xARPAddressGPAShrink(pxTmpTpa, 0x00))
 	{
 		ESP_LOGE(TAG_ARP, "Got problems parsing the target GPA");
 		vShimGPADestroy(pxTmpSpa);

@@ -67,11 +67,6 @@ void app_main(void)
 				ESP_LOGD(TAG_APP, "Sent Data successfully");
 			}
 
-			if (RINA_flow_read(xAppPortId, (void *)buffer, sizeof(buffer)))
-			{
-				ESP_LOGD(TAG_APP, "Receive data");
-			}
-
 			vTaskDelay(8000 / portTICK_RATE_MS);
 
 			i = i + 1;
